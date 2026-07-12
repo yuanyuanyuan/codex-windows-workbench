@@ -177,3 +177,23 @@ git clone https://github.com/<owner>/<repo>.git %USERPROFILE%\.codex\skills\<ski
 ## 一句话
 
 发布 skill 时，先把**名字、安装、调用**三件事对齐；脚本再强，文档身份错了也等于没发布成功。
+
+## 安装通道实测（2026-07-13）
+
+在本机对当前根 `SKILL.md` 布局做了验证：
+
+1. **npx skills add（通过）**
+   - `npx skills add yuanyuanyuan/codex-windows-workbench --list` → Found 1 skill: `codex-windows-workbench`
+   - `npx skills add . -g -y -s codex-windows-workbench -a codex --copy` → 安装到 `~\.agents\skills\codex-windows-workbench`
+2. **Manual clone（通过）**
+   - 根目录直接是 skill 目录：`SKILL.md` + `scripts/` + `agents/`
+3. **Plugin Marketplace（清单已补齐）**
+   - `.codex-plugin/plugin.json` 通过 `validate_plugin.py`
+   - `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` 对齐 marketplace 源仓库结构
+4. **RedSkill（仍为商店分发通道）**
+   - 仓库侧提供安装话术；是否上架取决于 RedSkill 商店，不由仓库结构单独保证
+
+布局决策：
+
+- 保持**根目录 skill**（Codex skill-creator 默认）
+- 不为了 Claude monorepo 风格强行迁到 `skills/<name>/`，避免破坏 `npx` 已验证路径与现有脚本相对路径

@@ -19,8 +19,14 @@
   "interface": {
     "displayName": "Codex Windows Workbench",
     "shortDescription": "Native Windows PowerShell 7 Codex workbench",
+    "longDescription": "Audit, preview, apply, verify, and roll back a native Windows PowerShell 7 Codex workbench. Default path is Core + Agent without WSL.",
     "developerName": "yuanyuanyuan",
     "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/yuanyuanyuan/codex-windows-workbench",
     "defaultPrompt": [
       "codex-windows-workbench"
     ]
