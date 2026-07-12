@@ -1,121 +1,166 @@
-# Windows PowerShell 7 Codex Workbench
+# windows-pwsh-agent-workbench
 
-> Chinese README: [README.zh-CN.md](./README.zh-CN.md)
+> 中文说明：[README.zh-CN.md](./README.zh-CN.md)
 
-Native Windows PowerShell 7 workbench bootstrap for Codex/AI agents.
+A **Codex Skill** for maintaining a native Windows PowerShell 7 workbench for Codex.
 
-This repository prepares a **repeatable, inspectable, reversible** developer shell for AI agents on Windows — without WSL, bash, apt, or brew.
+This repository is the **Workbench Source Repository**: it publishes the skill package plus the runtime scripts/config that the skill drives. It is **not** a generic “Windows installer project,” and it is **not** a personal dotfiles dump.
 
-## What it does
+## What this skill is
 
-Default path installs only:
+**Skill name:** `windows-pwsh-agent-workbench`
 
-- **Core** — common runtimes and CLI tools (Git, Node/fnm path readiness, Python/uv, Docker CLI, small Scoop CLIs, etc.)
-- **Agent** — PowerShell profile overlay, managed agent directories, PATH/encoding/proxy policy
+**One-line job:** help Codex set up, audit, verify, and safely maintain a native Windows PowerShell 7 engineering workbench — without WSL.
 
-After a successful default apply, smoke verification runs automatically. Explicit `-Verify` remains available later.
+When a user asks Codex things like:
 
-Optional workloads are explicit opt-in:
+- “帮我初始化 Windows AI agent 环境”
+- “check my Windows PowerShell workbench”
+- “prepare a Codex-ready Windows shell”
+- “verify Node/Git/Codex paths on Windows”
+- “rollback workbench-managed profile changes”
 
-| Switch | Purpose |
-|---|---|
-| `-Developer` | Go/.NET/build helpers/DevOps CLIs |
-| `-NativeBuild` | VS Build Tools / MSVC / Windows SDK |
-| `-Containers` | Docker Desktop (client/server reported separately) |
-| `-AgentClients` | Agent CLI verify/install (public MVP: **Codex only**) |
-| `-EnableSafetyHooks` | Dangerous-git safety hook |
-| `-Full` | All defined workloads |
+…this skill should be used.
 
-## Non-goals
+## What the skill does
 
-- Not Windows PowerShell 5.1
-- Not WSL / Linux package managers
-- No automatic Codex/Claude login
-- No silent remote MCP / marketplace plugin install
-- No package uninstall on rollback
-- Public MVP does **not** expand to multi-agent client marketing surface
+The skill routes and executes workbench operations:
 
-## Requirements
+1. **Audit / Preflight** — host checks, plan inspection, declarative validation
+2. **Preview** — show what would change (`-WhatIf`) without mutating the machine
+3. **Apply** — install/maintain the selected workbench path
+4. **Verify / Status** — machine-readable health and phase status
+5. **Rollback** — restore only workbench-managed files/settings
+6. **Safety boundary** — refuse Windows PowerShell 5.1, WSL, bash, apt, brew
 
-- Native Windows
-- PowerShell 7+
-- `winget` available for package configuration/install paths
+Default workload is **Codex Base (Core + Agent)** only. Heavier capabilities are optional and explicit.
 
-## Quick start
+| Workload | Selected by | Meaning |
+|---|---|---|
+| Core + Agent (default) | no extra flags | Codex-ready shell, runtimes, profile overlay |
+| Developer | `-Developer` | Go/.NET/build helpers/DevOps CLIs |
+| NativeBuild | `-NativeBuild` | VS Build Tools / MSVC / Windows SDK |
+| Containers | `-Containers` | Docker Desktop (client/server reported separately) |
+| AgentClients | `-AgentClients` | Agent CLI path (public MVP: **Codex only**) |
+| Safety hooks | `-EnableSafetyHooks` | opt-in dangerous-git protection |
+| Full | `-Full` | all defined optional workloads |
+
+## What this skill is not
+
+- Not a multi-agent marketplace installer
+- Not an auth/login automation tool
+- Not an MCP credential migrator
+- Not a WSL/Linux bootstrap
+- Not “silently make my whole PC into a full dev machine”
+
+Public MVP supports **Codex only**.
+
+## Install the skill
+
+### Option A — use this repo as a skill root
+
+Clone the repository, then point Codex / skill installer at the repo root (the directory that contains `SKILL.md`):
 
 ```powershell
-# Preview (no machine changes)
+git clone https://github.com/yuanyuanyuan/windows-pwsh-agent-workbench.git
+```
+
+Skill package entrypoints:
+
+- [`SKILL.md`](./SKILL.md) — skill instructions (`name` + `description` frontmatter)
+- [`agents/openai.yaml`](./agents/openai.yaml) — Codex agent interface metadata
+- [`scripts/`](./scripts/) — deterministic automation the skill invokes
+- [`references/`](./references/) — detailed contracts loaded on demand
+
+### Option B — already in a Codex skills directory
+
+If this repo is installed under your Codex skills path, invoke it by skill name:
+
+```text
+windows-pwsh-agent-workbench
+```
+
+or by natural-language task that matches the skill description.
+
+## How users should talk to the skill
+
+Good prompts:
+
+- “Use the Windows PowerShell Codex workbench skill to preview the default setup.”
+- “Audit my current Windows workbench and report missing required tools.”
+- “Apply Core + Agent only, then verify.”
+- “Enable safety hooks and show what files would change.”
+- “Rollback only managed workbench settings.”
+
+The skill should prefer:
+
+```powershell
+# preview
 pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -WhatIf -Json
 
-# Apply Core + Agent (default), then auto smoke-verify
+# apply default Codex Base
 pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1
 
-# Later diagnosis
+# verify / status / rollback
 pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify -Json
 pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Status -Json
+pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Rollback
 ```
 
-Optional:
+Preflight:
 
 ```powershell
-.\scripts\Initialize-PwshAgentWindows.ps1 -Developer
-.\scripts\Initialize-PwshAgentWindows.ps1 -NativeBuild
-.\scripts\Initialize-PwshAgentWindows.ps1 -Containers
-.\scripts\Initialize-PwshAgentWindows.ps1 -AgentClients
-.\scripts\Initialize-PwshAgentWindows.ps1 -EnableSafetyHooks
-.\scripts\Initialize-PwshAgentWindows.ps1 -Full
-.\scripts\Initialize-PwshAgentWindows.ps1 -Rollback
+pwsh -NoLogo -NoProfile -File .\scripts\Preflight-PwshAgentWindows.ps1 -Json
 ```
 
-Preflight only:
+## Host constraints
 
-```powershell
-.\scripts\Preflight-PwshAgentWindows.ps1 -Json
-```
+- Supported host: **native Windows + PowerShell 7+**
+- Rejected: Windows PowerShell 5.1, WSL, bash, sh, apt, brew
+- Package installs and machine changes happen only through explicit workbench runs
+- CI and contract tests intentionally avoid real machine installation
 
 ## Safety model
 
-- Additive profile changes with backup before managed overwrites
-- PATH updates use exact-entry match + dedupe
+- Additive profile changes; backup before managed overwrite
+- PATH uses exact-entry match + dedupe
 - AgentClients never writes tokens, MCP endpoints, or permission grants
-- Rollback restores only managed files/registry values after ownership/hash checks
-- Packages stay installed unless the user uninstalls them separately
-- Secrets and machine-local proxy endpoints do not belong in this repo
+- Rollback restores managed files/settings only after ownership/hash checks
+- Packages are never uninstalled by rollback
+- No usernames, absolute personal paths, proxy secrets, or auth state belong in this public repo
 
 ## Repository layout
 
 ```text
-scripts/                     # public entrypoints + tests
-scripts/Private/             # phase/state helpers
-config/                      # winget docs, overlay, agent content
-docs/                        # design notes and operator docs
-SKILL.md                     # Codex skill packaging entry
-.github/workflows/           # CI (no real machine installs)
+SKILL.md                 # skill entry (this package root)
+agents/openai.yaml       # Codex skill interface metadata
+scripts/                 # skill runtime automation + contract tests
+scripts/Private/         # phase/state helpers
+config/                  # winget docs, overlay, agent content pack
+references/              # progressive-disclosure contracts
+docs/                    # design and operator notes
+.github/workflows/       # skill package CI (no real installs)
 ```
 
-## Tests and CI
+## Tests
 
-Local contract tests:
+Contract tests for the skill runtime:
 
 ```powershell
 $env:PWSH_AI_AGENT_SKIP_WINGET_PREFLIGHT = '1'
 pwsh -NoLogo -NoProfile -File .\scripts\Test-InitializePwshAgentWindows.ps1
 pwsh -NoLogo -NoProfile -File .\scripts\Test-AgentClients.ps1
-pwsh -NoLogo -NoProfile -File .\scripts\Test-PwshAgentEnv.ps1 -Json
 ```
-
-CI runs parser checks, contract tests, and WhatIf assertions. It intentionally does **not** perform real `winget install` / `scoop install` / Docker daemon setup.
 
 ## Docs
 
-- Operator guide: [docs/windows-agent-env.md](./docs/windows-agent-env.md)
-- Design notes under `docs/superpowers/`
 - Domain language: [CONTEXT.md](./CONTEXT.md)
+- Operator notes: [docs/windows-agent-env.md](./docs/windows-agent-env.md)
+- Skill design: [docs/superpowers/specs/2026-07-12-public-codex-workbench-skill-design.md](./docs/superpowers/specs/2026-07-12-public-codex-workbench-skill-design.md)
 
-## Versioning
+## Version
 
-This repository publishes a **Codex Workbench MVP**.
-Treat heavy workloads (NativeBuild/Containers) as explicit capabilities, not default claims.
+Current public release: **Codex Workbench MVP (`v0.1.0`)**.
 
 ## License
 
