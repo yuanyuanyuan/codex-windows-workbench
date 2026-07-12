@@ -449,11 +449,17 @@ if ($Rollback) {
 if ($Verify) {
     $preflight = Invoke-WorkbenchPreflight
     $testScript = Join-Path $PSScriptRoot 'Test-PwshAgentEnv.ps1'
-    $verification = if (Test-Path -LiteralPath $testScript) {
-        & pwsh -NoLogo -NoProfile -File $testScript -Deep -Json | ConvertFrom-Json
-    } else {
+    if (-not (Test-Path -LiteralPath $testScript)) {
         throw "Verification script not found: $testScript"
     }
+    $verifyRaw = & pwsh -NoLogo -NoProfile -File $testScript -Deep -Json 2>&1
+    $verifyText = ($verifyRaw | ForEach-Object { "$_" }) -join "`n"
+    $vs = $verifyText.IndexOf('{')
+    $ve = $verifyText.LastIndexOf('}')
+    if ($vs -lt 0 -or $ve -le $vs) {
+        throw "Verification did not return JSON. Text=$verifyText"
+    }
+    $verification = $verifyText.Substring($vs, $ve - $vs + 1) | ConvertFrom-Json
     $report = [ordered]@{
         Mode         = 'Verify'
         Changed      = $false
@@ -462,8 +468,12 @@ if ($Verify) {
         Preflight    = $preflight.Report
     }
     if ($Json) { $report | ConvertTo-Json -Depth 12 } else { $verification | Format-List }
+    $runtimeFailures = 0
+    if ($verification.Summary.PSObject.Properties.Name -contains 'RuntimeFailures') {
+        $runtimeFailures = [int]$verification.Summary.RuntimeFailures
+    }
     if ($preflight.ExitCode -ne 0) { exit 1 }
-    if ($verification.Summary.RequiredMissing -gt 0 -or $verification.Summary.RuntimeFailures -gt 0) { exit 1 }
+    if ([int]$verification.Summary.RequiredMissing -gt 0 -or $runtimeFailures -gt 0) { exit 1 }
     return
 }
 

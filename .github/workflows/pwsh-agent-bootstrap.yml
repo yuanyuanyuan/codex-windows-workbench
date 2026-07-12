@@ -48,12 +48,16 @@ jobs:
           PWSH_AI_AGENT_SKIP_WINGET_PREFLIGHT: '1'
         run: |
           $ErrorActionPreference = 'Stop'
-          $status = & pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Status -Json | ConvertFrom-Json
+          $PSNativeCommandUseErrorActionPreference = $false
+          $statusRaw = & pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Status -Json 2>&1 | Out-String
+          if ($LASTEXITCODE -ne 0) { throw "Status failed: $statusRaw" }
+          $status = ($statusRaw | ConvertFrom-Json)
           if ($status.Mode -ne 'Status') { throw 'Status mode mismatch' }
           if (-not $status.Preflight) { throw 'Status missing Preflight' }
-          # Verify may fail on missing tools in fresh CI images; still require parseable JSON mode.
+          # Verify may exit non-zero on missing tools in fresh CI images; still require parseable JSON mode.
           $verifyRaw = & pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify -Json 2>&1 | Out-String
           if ($verifyRaw -notmatch '"Mode"\s*:\s*"Verify"') { throw "Verify JSON missing Mode=Verify. Output=$verifyRaw" }
+          Write-Host "Status/Verify JSON shape OK (verify exit may be non-zero on clean runners)."
       - name: PSScriptAnalyzer (optional)
         shell: pwsh
         run: |

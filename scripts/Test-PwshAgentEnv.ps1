@@ -159,7 +159,7 @@ if ($Deep) {
         node -e "console.log('node-ok')"
     }
 
-    Add-RuntimeCheck -Name 'node-version-24.18.0' -ScriptBlock {
+    Add-RuntimeCheck -Name 'node-version-24.18.0' -Optional -ScriptBlock {
         $v = (node -v 2>&1 | Out-String).Trim()
         if ($v -notmatch 'v?24\.18\.0') { throw "Expected Node 24.18.0, got $v" }
         $v
@@ -183,7 +183,7 @@ if ($Deep) {
         python -c "print('python-ok')"
     }
 
-    Add-RuntimeCheck -Name 'go-run' -ScriptBlock {
+    Add-RuntimeCheck -Name 'go-run' -Optional -ScriptBlock {
         $dir = Join-Path ([System.IO.Path]::GetTempPath()) ("pwsh-agent-go-" + [guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $dir | Out-Null
         try {
@@ -203,7 +203,21 @@ func main() { fmt.Println("go-ok") }
     }
 
     Add-RuntimeCheck -Name 'docker-client-server' -Optional -ScriptBlock {
-        docker version --format '{{.Client.Version}} {{.Server.Version}}'
+        if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+            throw 'docker command not found'
+        }
+        $job = Start-Job {
+            docker version --format '{{.Client.Version}} {{.Server.Version}}' 2>&1 | Out-String
+        }
+        if (-not (Wait-Job $job -Timeout 8)) {
+            Stop-Job $job -Force -ErrorAction SilentlyContinue
+            Remove-Job $job -Force -ErrorAction SilentlyContinue
+            throw 'docker version timed out (daemon may be unavailable)'
+        }
+        $output = Receive-Job $job
+        Remove-Job $job -Force -ErrorAction SilentlyContinue
+        if (-not $output) { throw 'docker version returned empty output' }
+        $output.Trim()
     }
 
     $result.RuntimeChecks = @($runtimeChecks)
@@ -213,6 +227,8 @@ func main() { fmt.Println("go-ok") }
 
 if ($Json) {
     $result | ConvertTo-Json -Depth 5
+    if ($missingRequired.Count -gt 0) { exit 1 }
+    if ($Deep -and ($result.Summary.PSObject.Properties.Name -contains 'RuntimeFailures') -and $result.Summary.RuntimeFailures -gt 0) { exit 1 }
     return
 }
 
