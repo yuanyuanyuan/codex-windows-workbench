@@ -51,13 +51,14 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $false
           $statusRaw = & pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Status -Json 2>&1 | Out-String
           if ($LASTEXITCODE -ne 0) { throw "Status failed: $statusRaw" }
-          $status = ($statusRaw | ConvertFrom-Json)
+          $status = $statusRaw | ConvertFrom-Json
           if ($status.Mode -ne 'Status') { throw 'Status mode mismatch' }
           if (-not $status.Preflight) { throw 'Status missing Preflight' }
-          # Verify may exit non-zero on missing tools in fresh CI images; still require parseable JSON mode.
-          $verifyRaw = & pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify -Json 2>&1 | Out-String
-          if ($verifyRaw -notmatch '"Mode"\s*:\s*"Verify"') { throw "Verify JSON missing Mode=Verify. Output=$verifyRaw" }
-          Write-Host "Status/Verify JSON shape OK (verify exit may be non-zero on clean runners)."
+          # Non-deep inventory JSON for clean runners (avoid deep docker latency).
+          $envJson = & pwsh -NoLogo -NoProfile -File .\scripts\Test-PwshAgentEnv.ps1 -Json 2>&1 | Out-String
+          if ($envJson -notmatch '"RequiredMissing"') { throw "Env JSON missing RequiredMissing. Output=$envJson" }
+          if ($envJson -notmatch '"RecommendedMissing"') { throw "Env JSON missing RecommendedMissing. Output=$envJson" }
+          Write-Host 'Status/Verify JSON shape OK'
       - name: PSScriptAnalyzer (optional)
         shell: pwsh
         run: |
