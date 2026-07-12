@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+# Optional developer and DevOps workload for the native Windows agent environment.
+
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+
+metadata:
+  winget:
+    processor: dscv3
+
+resources:
+  - type: Microsoft.WinGet/Package
+    name: Go
+    properties:
+      id: GoLang.Go
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install the Go SDK.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: DotNetSDK
+    properties:
+      id: Microsoft.DotNet.SDK.10
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install the current .NET SDK.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: CMake
+    properties:
+      id: Kitware.CMake
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install CMake.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: Ninja
+    properties:
+      id: Ninja-build.Ninja
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install Ninja.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: Helm
+    properties:
+      id: Helm.Helm
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install Helm.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: Terraform
+    properties:
+      id: Hashicorp.Terraform
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install Terraform.
+      winget:
+        securityContext: elevated

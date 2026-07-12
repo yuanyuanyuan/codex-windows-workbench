@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+# Optional native build package inventory. The initializer supplies the MSVC workload
+# override because a plain package resource does not select the required components.
+
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+
+metadata:
+  winget:
+    processor: dscv3
+
+resources:
+  - type: Microsoft.WinGet/Package
+    name: VisualStudioBuildTools
+    properties:
+      id: Microsoft.VisualStudio.2022.BuildTools
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install Visual Studio Build Tools; the initializer adds MSVC and Windows SDK workloads.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: VisualStudioLocator
+    properties:
+      id: Microsoft.VisualStudio.Locator
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install vswhere for locating Visual Studio toolchains.
+      winget:
+        securityContext: elevated

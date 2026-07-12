@@ -1,0 +1,198 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+#
+# Windows agent development baseline.
+# Apply manually only after reviewing:
+# winget configure -f .\config\windows-agent-dev.winget --accept-configuration-agreements --disable-interactivity
+#
+# Scope note:
+# - No WSL setup. This project targets native Windows PowerShell for Codex/AI agents.
+# - Visual Studio Build Tools is intentionally present but commented out because it is large.
+
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+
+metadata:
+  winget:
+    processor: dscv3
+
+resources:
+  - type: Microsoft.WinGet/Package
+    name: PowerShell
+    properties:
+      id: Microsoft.PowerShell
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install PowerShell 7.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: Git
+    properties:
+      id: Git.Git
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install Git for Windows.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: GitHubCLI
+    properties:
+      id: GitHub.cli
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install GitHub CLI.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: WindowsTerminal
+    properties:
+      id: Microsoft.WindowsTerminal
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install Windows Terminal.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: VisualStudioCode
+    properties:
+      id: Microsoft.VisualStudioCode
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install Visual Studio Code.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: VCRedistX64
+    properties:
+      id: Microsoft.VCRedist.2015+.x64
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install VC++ Redistributable, required by some winget configure flows.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: DotNetSDK
+    properties:
+      id: Microsoft.DotNet.SDK.10
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install current .NET SDK.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: Go
+    properties:
+      id: GoLang.Go
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install Go SDK.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: CMake
+    properties:
+      id: Kitware.CMake
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install CMake.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: Ninja
+    properties:
+      id: Ninja-build.Ninja
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install Ninja build system.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: Helm
+    properties:
+      id: Helm.Helm
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install Helm.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.WinGet/Package
+    name: Terraform
+    properties:
+      id: Hashicorp.Terraform
+      source: winget
+      acceptAgreements: true
+    metadata:
+      description: Install Terraform.
+      winget:
+        securityContext: elevated
+
+  - type: Microsoft.DSC.Transitional/PowerShellScript
+    name: LongPaths
+    properties:
+      getScript: |
+        $path = 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem'
+        $value = Get-ItemPropertyValue -Path $path -Name LongPathsEnabled -ErrorAction SilentlyContinue
+        return @{ LongPathsEnabled = [int]$value }
+      testScript: |
+        $path = 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem'
+        $value = Get-ItemPropertyValue -Path $path -Name LongPathsEnabled -ErrorAction SilentlyContinue
+        return ($value -eq 1)
+      setScript: |
+        $path = 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem'
+        Set-ItemProperty -Path $path -Name LongPathsEnabled -Value 1 -Type DWord
+    metadata:
+      description: Enable long paths for deep repositories.
+      securityContext: elevated
+
+  - type: Microsoft.DSC.Transitional/PowerShellScript
+    name: DeveloperMode
+    properties:
+      getScript: |
+        $path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock'
+        $value = Get-ItemPropertyValue -Path $path -Name AllowDevelopmentWithoutDevLicense -ErrorAction SilentlyContinue
+        return @{ AllowDevelopmentWithoutDevLicense = [int]$value }
+      testScript: |
+        $path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock'
+        $value = Get-ItemPropertyValue -Path $path -Name AllowDevelopmentWithoutDevLicense -ErrorAction SilentlyContinue
+        return ($value -eq 1)
+      setScript: |
+        $path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock'
+        New-Item -Path $path -Force | Out-Null
+        Set-ItemProperty -Path $path -Name AllowDevelopmentWithoutDevLicense -Value 1 -Type DWord
+    metadata:
+      description: Enable Windows Developer Mode.
+      securityContext: elevated
+
+  # Optional heavy native build toolchain. Review before uncommenting.
+  #
+  # - type: Microsoft.WinGet/Package
+  #   name: VisualStudioBuildTools
+  #   properties:
+  #     id: Microsoft.VisualStudio.2022.BuildTools
+  #     source: winget
+  #     acceptAgreements: true
+  #   metadata:
+  #     description: Install Visual Studio Build Tools for MSVC/MSBuild/Windows SDK.
+  #     winget:
+  #       securityContext: elevated
