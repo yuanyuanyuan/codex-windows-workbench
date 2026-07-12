@@ -5,43 +5,37 @@ description: Maintain a native Windows PowerShell 7 workbench for Codex. Use whe
 
 # Codex Windows Workbench
 
+## Invocation
+
+Users call this skill directly:
+
+```text
+codex-windows-workbench
+/codex-windows-workbench
+```
+
+Do not require natural-language trigger hunting. When invoked, execute the requested workbench action.
+
 ## Role
 
-You are operating the **Codex Windows Workbench** skill.
-
-Maintain a native Windows PowerShell 7 engineering workbench for Codex. This is not a generic installer FAQ and not a multi-agent marketplace.
-
-## When to use
-
-Use this skill when the user wants to:
-
-- bootstrap or repair a Windows Codex/AI agent shell
-- preview what the workbench would change
-- verify required tools and phase status
-- roll back workbench-managed settings
-- prepare a portable workbench baseline without copying secrets
-
-## Host constraints
-
-- PowerShell 7+ only
-- Native Windows only
-- Never use WSL, bash, apt, or brew
-- Public MVP supports Codex only
+Maintain a native Windows PowerShell 7 engineering workbench for Codex.
+Not a multi-agent marketplace. Not an auth/login tool.
 
 ## Default workflow
 
-1. Prefer preview first:
+1. Preview first when the user has not confirmed apply:
    ```powershell
    pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -WhatIf -Json
    ```
-2. Apply Codex Base (Core + Agent) only unless the user explicitly opts into more:
+2. Apply Core + Agent only unless explicitly asked for more:
    ```powershell
    pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1
    ```
-3. Verify / report status:
+3. Verify / status / rollback on request:
    ```powershell
    pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify -Json
    pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Status -Json
+   pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Rollback
    ```
 
 ## Optional workloads
@@ -57,6 +51,13 @@ Only when explicitly requested:
 .\scripts\Initialize-PwshAgentWindows.ps1 -Full
 ```
 
+## Host constraints
+
+- PowerShell 7+ only
+- Native Windows only
+- Never use WSL, bash, apt, or brew
+- Public MVP supports Codex only
+
 ## Safety
 
 - Never write tokens, MCP endpoints, or permission grants
@@ -67,6 +68,6 @@ Only when explicitly requested:
 
 ## References
 
-- Detailed contracts: `references/contracts.md`
-- Operator notes: `docs/windows-agent-env.md`
-- Domain language: `CONTEXT.md`
+- `references/contracts.md`
+- `docs/windows-agent-env.md`
+- `CONTEXT.md`

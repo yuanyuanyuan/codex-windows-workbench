@@ -1,4 +1,4 @@
 interface:
   display_name: "Codex Windows Workbench"
   short_description: "Maintain a native Windows PowerShell 7 workbench for Codex"
-  default_prompt: "Use the codex-windows-workbench skill to audit, preview, apply, verify, or roll back a native Windows PowerShell 7 Codex workbench. Prefer Core + Agent by default. Never use WSL."
+  default_prompt: "codex-windows-workbench"
