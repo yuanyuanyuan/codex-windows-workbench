@@ -83,6 +83,7 @@ SKILL.md
 agents/openai.yaml
 .codex-plugin/plugin.json
 .claude-plugin/plugin.json
+.claude-plugin/marketplace.json
 package.json
 scripts/
 config/
