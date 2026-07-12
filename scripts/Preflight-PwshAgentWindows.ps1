@@ -20,10 +20,10 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $configRoot = Join-Path $repoRoot 'config'
 $refreshPath = Join-Path $PSScriptRoot 'Refresh-EnvPath.ps1'
 
-if (-not $Configs -or $Configs.Count -eq 0) {
-    $Configs = @(
-        (Join-Path $configRoot 'windows-agent-core.winget')
-    )
+if (-not $Configs -or @($Configs).Count -eq 0) {
+    $Configs = @((Join-Path $configRoot 'windows-agent-core.winget'))
+} else {
+    $Configs = @($Configs)
 }
 
 $checks = [System.Collections.Generic.List[object]]::new()
@@ -114,13 +114,13 @@ function Get-ProxyEndpointHint {
     return $redacted
 }
 
-$proxyCandidates = @(
+$proxyCandidates = @(@(
     [pscustomobject]@{ Name = 'HTTPS_PROXY'; Value = $env:HTTPS_PROXY }
     [pscustomobject]@{ Name = 'HTTP_PROXY'; Value = $env:HTTP_PROXY }
     [pscustomobject]@{ Name = 'ALL_PROXY'; Value = $env:ALL_PROXY }
-) | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Value) }
+) | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Value) })
 
-if ($proxyCandidates.Count -eq 0) {
+if (@($proxyCandidates).Count -eq 0) {
     Add-Check -Name 'proxy-reachability' -Status 'SKIP' -Detail 'No process proxy environment variables set'
 } else {
     $primary = $proxyCandidates[0]
@@ -261,9 +261,9 @@ foreach ($configPath in $Configs) {
 }
 
 $summary = [pscustomobject]@{
-    Blockers = $blockers.Count
-    Warnings = $warnings.Count
-    Checks   = $checks.Count
+    Blockers = @($blockers).Count
+    Warnings = @($warnings).Count
+    Checks   = @($checks).Count
     Ok       = @($checks | Where-Object Status -eq 'OK').Count
 }
 
@@ -288,11 +288,11 @@ if ($Json) {
     'Preflight'
     $report.Host | Format-List
     $checks | Format-Table -AutoSize
-    if ($warnings.Count -gt 0) {
+    if (@($warnings).Count -gt 0) {
         'Warnings'
         $warnings | ForEach-Object { "- $_" }
     }
-    if ($blockers.Count -gt 0) {
+    if (@($blockers).Count -gt 0) {
         'Blockers'
         $blockers | ForEach-Object { "- $_" }
     }
@@ -300,4 +300,4 @@ if ($Json) {
     $summary | Format-List
 }
 
-if ($blockers.Count -gt 0) { exit 1 }
+if (@($blockers).Count -gt 0) { exit 1 }
