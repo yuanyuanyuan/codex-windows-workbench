@@ -1,0 +1,19 @@
+{
+  "name": "codex-windows-workbench",
+  "description": "Native Windows PowerShell 7 workbench skill for Codex (Core+Agent default, no WSL)",
+  "version": "0.1.0",
+  "author": {
+    "name": "yuanyuanyuan",
+    "url": "https://github.com/yuanyuanyuan"
+  },
+  "homepage": "https://github.com/yuanyuanyuan/codex-windows-workbench",
+  "repository": "https://github.com/yuanyuanyuan/codex-windows-workbench",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "codex",
+    "windows",
+    "powershell",
+    "workbench"
+  ]
+}

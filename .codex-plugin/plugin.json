@@ -1,0 +1,28 @@
+{
+  "name": "codex-windows-workbench",
+  "version": "0.1.0",
+  "description": "Maintain a native Windows PowerShell 7 workbench for Codex",
+  "author": {
+    "name": "yuanyuanyuan",
+    "url": "https://github.com/yuanyuanyuan"
+  },
+  "homepage": "https://github.com/yuanyuanyuan/codex-windows-workbench",
+  "repository": "https://github.com/yuanyuanyuan/codex-windows-workbench",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "codex",
+    "windows",
+    "powershell",
+    "workbench"
+  ],
+  "interface": {
+    "displayName": "Codex Windows Workbench",
+    "shortDescription": "Native Windows PowerShell 7 Codex workbench",
+    "developerName": "yuanyuanyuan",
+    "category": "Productivity",
+    "defaultPrompt": [
+      "codex-windows-workbench"
+    ]
+  }
+}

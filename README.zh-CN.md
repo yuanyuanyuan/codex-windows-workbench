@@ -9,16 +9,35 @@
 
 ## 安装
 
+### RedSkill
+
 把下面这段发给你的 Agent：
 
 ```text
 现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 codex-windows-workbench 技能。若已安装，则直接安装 codex-windows-workbench 技能。
 ```
 
-源仓库：
+### npx（推荐）
+
+```bash
+npx skills add yuanyuanyuan/codex-windows-workbench
+```
+
+### Plugin Marketplace
 
 ```text
-https://github.com/yuanyuanyuan/windows-pwsh-agent-workbench
+/plugin marketplace add yuanyuanyuan/codex-windows-workbench
+/plugin install codex-windows-workbench@codex-windows-workbench
+```
+
+### 手动安装（Git Clone）
+
+```bash
+# Windows + Codex
+git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git %USERPROFILE%\.codex\skills\codex-windows-workbench
+
+# Windows + Claude Code
+git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git %USERPROFILE%\.claude\skills\codex-windows-workbench
 ```
 
 ## 使用
@@ -62,6 +81,9 @@ codex-windows-workbench
 ```text
 SKILL.md
 agents/openai.yaml
+.codex-plugin/plugin.json
+.claude-plugin/plugin.json
+package.json
 scripts/
 config/
 references/

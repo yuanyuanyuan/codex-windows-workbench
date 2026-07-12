@@ -1,0 +1,17 @@
+{
+  "name": "codex-windows-workbench",
+  "version": "0.1.0",
+  "description": "Native Windows PowerShell 7 workbench skill for Codex",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuanyuanyuan/codex-windows-workbench.git"
+  },
+  "keywords": [
+    "skills",
+    "codex",
+    "windows",
+    "powershell",
+    "workbench"
+  ]
+}
