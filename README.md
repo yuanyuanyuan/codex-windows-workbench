@@ -12,18 +12,10 @@ Default path: **Core + Agent**. No WSL.
 Copy this to your Agent:
 
 ```text
-现在为你安装 Skill，先来检查是否已安装 Red Skill 商店。
-请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 codex-windows-workbench 技能。
-若已安装 RedSkill，则直接安装 codex-windows-workbench 技能。
+现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 codex-windows-workbench 技能。若已安装，则直接安装 codex-windows-workbench 技能。
 ```
 
-CLI equivalent after RedSkill is available:
-
-```bash
-redskill install codex-windows-workbench
-```
-
-Source repository (distribution only):
+Source repository:
 
 ```text
 https://github.com/yuanyuanyuan/windows-pwsh-agent-workbench
@@ -31,28 +23,13 @@ https://github.com/yuanyuanyuan/windows-pwsh-agent-workbench
 
 ## Use
 
-Directly call:
-
 ```text
 codex-windows-workbench
 ```
 
-or:
-
 ```text
 /codex-windows-workbench
 ```
-
-Examples:
-
-```text
-codex-windows-workbench 预览默认安装
-/codex-windows-workbench 只做 Core + Agent 并验证
-codex-windows-workbench status
-/codex-windows-workbench rollback
-```
-
-No keyword hunting. Call the skill name directly.
 
 ## What it does
 

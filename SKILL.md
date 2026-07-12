@@ -7,14 +7,10 @@ description: Maintain a native Windows PowerShell 7 workbench for Codex. Use whe
 
 ## Invocation
 
-Users call this skill directly:
-
 ```text
 codex-windows-workbench
 /codex-windows-workbench
 ```
-
-Do not require natural-language trigger hunting. When invoked, execute the requested workbench action.
 
 ## Role
 

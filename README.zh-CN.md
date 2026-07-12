@@ -12,18 +12,10 @@
 把下面这段发给你的 Agent：
 
 ```text
-现在为你安装 Skill，先来检查是否已安装 Red Skill 商店。
-请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 codex-windows-workbench 技能。
-若已安装 RedSkill，则直接安装 codex-windows-workbench 技能。
+现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 codex-windows-workbench 技能。若已安装，则直接安装 codex-windows-workbench 技能。
 ```
 
-已有 RedSkill 时，也可直接：
-
-```bash
-redskill install codex-windows-workbench
-```
-
-源仓库（仅分发）：
+源仓库：
 
 ```text
 https://github.com/yuanyuanyuan/windows-pwsh-agent-workbench
@@ -31,28 +23,13 @@ https://github.com/yuanyuanyuan/windows-pwsh-agent-workbench
 
 ## 使用
 
-直接调用：
-
 ```text
 codex-windows-workbench
 ```
 
-或：
-
 ```text
 /codex-windows-workbench
 ```
-
-示例：
-
-```text
-codex-windows-workbench 预览默认安装
-/codex-windows-workbench 只做 Core + Agent 并验证
-codex-windows-workbench status
-/codex-windows-workbench rollback
-```
-
-不要靠触发词碰运气，直接调用 skill 名。
 
 ## 能做什么
 
