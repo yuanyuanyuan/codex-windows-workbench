@@ -1,19 +1,24 @@
-# windows-pwsh-agent-workbench
+# Codex Windows Workbench
 
 > English README: [README.md](./README.md)
 
-这是一个 **Codex Skill**：用于维护「原生 Windows PowerShell 7 + Codex」工程工作台。
+**Codex skill 名称：** `codex-windows-workbench`
 
-本仓库是 **Workbench Source Repository（工作台源仓库）**：发布 Skill 包，以及 Skill 驱动的运行时脚本/配置。  
-它**不是**普通 Windows 安装器项目，也**不是**个人 dotfiles 仓库。
+本仓库发布的是 **Codex Windows Workbench** skill：帮助 Codex 维护原生 Windows PowerShell 7 工程工作台。
+
+GitHub 仓库名只是分发源。Skill 身份是 `codex-windows-workbench`，不是仓库名。
 
 ## 这个 Skill 是什么
 
-**Skill 名称：** `windows-pwsh-agent-workbench`
+用于：
 
-**一句话职责：** 帮助 Codex 在原生 Windows 上搭建、审计、验证并安全维护 PowerShell 7 工程工作台——不使用 WSL。
+- 审计 Windows AI agent 工作台
+- 预览将要发生的变更
+- 应用默认 Codex Base 路径
+- 验证工具/运行时健康状态
+- 回滚工作台管理过的设置
 
-当用户这样说时，应使用本 skill：
+当用户这样说时，应使用 **`codex-windows-workbench`**：
 
 - “帮我初始化 Windows AI agent 环境”
 - “检查我的 Windows PowerShell 工作台”
@@ -22,8 +27,6 @@
 - “回滚工作台管理过的 profile 变更”
 
 ## Skill 做什么
-
-Skill 负责路由并执行工作台操作：
 
 1. **审计 / 预检**：宿主检查、计划检查、声明式校验
 2. **预览**：`-WhatIf` 展示将发生的变更，不改机器
@@ -66,26 +69,26 @@ git clone https://github.com/yuanyuanyuan/windows-pwsh-agent-workbench.git
 
 Skill 包入口：
 
-- [`SKILL.md`](./SKILL.md) — skill 说明（仅 `name` + `description` frontmatter）
+- [`SKILL.md`](./SKILL.md) — skill 说明（`name: codex-windows-workbench`）
 - [`agents/openai.yaml`](./agents/openai.yaml) — Codex agent 接口元数据
 - [`scripts/`](./scripts/) — skill 调用的确定性自动化
 - [`references/`](./references/) — 按需加载的详细契约
 
-### 方式 B：已安装到 Codex skills 目录
+### 方式 B：安装到 Codex skills 目录
 
-如果本仓库已安装到你的 Codex skills 路径，可按 skill 名称调用：
+安装或复制本包后，Codex 应能发现 skill 名称：
 
 ```text
-windows-pwsh-agent-workbench
+codex-windows-workbench
 ```
 
-或用匹配 skill 描述的自然语言任务触发。
+然后按 skill 名称调用，或用匹配 skill 描述的自然语言任务触发。
 
 ## 用户该怎么对 Skill 说话
 
 推荐说法：
 
-- “用 Windows PowerShell Codex workbench skill 预览默认安装计划。”
+- “用 `codex-windows-workbench` 预览默认安装计划。”
 - “审计我当前的 Windows 工作台，报告缺了哪些 required 工具。”
 - “只应用 Core + Agent，然后验证。”
 - “启用 safety hooks，并告诉我会改哪些文件。”
@@ -131,7 +134,7 @@ pwsh -NoLogo -NoProfile -File .\scripts\Preflight-PwshAgentWindows.ps1 -Json
 ## 仓库结构
 
 ```text
-SKILL.md                 # skill 入口（仓库根即 skill 根）
+SKILL.md                 # skill 入口（name: codex-windows-workbench）
 agents/openai.yaml       # Codex skill 接口元数据
 scripts/                 # skill 运行时自动化 + 合同测试
 scripts/Private/         # phase/state 辅助

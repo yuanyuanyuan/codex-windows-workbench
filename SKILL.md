@@ -1,15 +1,15 @@
 ---
-name: windows-pwsh-agent-workbench
-description: Maintain a native Windows PowerShell 7 Codex workbench. Use when auditing, previewing, configuring, installing, verifying, or rolling back a Windows AI agent environment without WSL; supports Core+Agent by default and optional Developer/NativeBuild/Containers/AgentClients.
+name: codex-windows-workbench
+description: Maintain a native Windows PowerShell 7 workbench for Codex. Use when auditing, previewing, configuring, installing, verifying, or rolling back a Windows AI agent environment without WSL; default Core+Agent path with optional Developer, NativeBuild, Containers, and Codex client checks.
 ---
 
-# Windows PowerShell 7 Codex Workbench Skill
+# Codex Windows Workbench
 
 ## Role
 
-You are operating the **Workbench Skill** for a native Windows PowerShell 7 Codex workbench.
+You are operating the **Codex Windows Workbench** skill.
 
-This package maintains a workbench; it is not a generic installer FAQ and not a multi-agent marketplace.
+Maintain a native Windows PowerShell 7 engineering workbench for Codex. This is not a generic installer FAQ and not a multi-agent marketplace.
 
 ## When to use
 

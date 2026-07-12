@@ -1,16 +1,22 @@
-# windows-pwsh-agent-workbench
+# Codex Windows Workbench
 
 > 中文说明：[README.zh-CN.md](./README.zh-CN.md)
 
-A **Codex Skill** for maintaining a native Windows PowerShell 7 workbench for Codex.
+**Codex skill name:** `codex-windows-workbench`
 
-This repository is the **Workbench Source Repository**: it publishes the skill package plus the runtime scripts/config that the skill drives. It is **not** a generic “Windows installer project,” and it is **not** a personal dotfiles dump.
+This repository publishes the **Codex Windows Workbench** skill: a package that helps Codex maintain a native Windows PowerShell 7 engineering workbench.
+
+The GitHub repository is only the distribution source. The skill identity is `codex-windows-workbench`, not the repository name.
 
 ## What this skill is
 
-**Skill name:** `windows-pwsh-agent-workbench`
+A Codex skill for:
 
-**One-line job:** help Codex set up, audit, verify, and safely maintain a native Windows PowerShell 7 engineering workbench — without WSL.
+- auditing a Windows AI agent workbench
+- previewing planned changes
+- applying the default Codex Base path
+- verifying tool/runtime health
+- rolling back workbench-managed settings
 
 When a user asks Codex things like:
 
@@ -20,11 +26,9 @@ When a user asks Codex things like:
 - “verify Node/Git/Codex paths on Windows”
 - “rollback workbench-managed profile changes”
 
-…this skill should be used.
+…use **`codex-windows-workbench`**.
 
 ## What the skill does
-
-The skill routes and executes workbench operations:
 
 1. **Audit / Preflight** — host checks, plan inspection, declarative validation
 2. **Preview** — show what would change (`-WhatIf`) without mutating the machine
@@ -67,26 +71,26 @@ git clone https://github.com/yuanyuanyuan/windows-pwsh-agent-workbench.git
 
 Skill package entrypoints:
 
-- [`SKILL.md`](./SKILL.md) — skill instructions (`name` + `description` frontmatter)
+- [`SKILL.md`](./SKILL.md) — skill instructions (`name: codex-windows-workbench`)
 - [`agents/openai.yaml`](./agents/openai.yaml) — Codex agent interface metadata
 - [`scripts/`](./scripts/) — deterministic automation the skill invokes
 - [`references/`](./references/) — detailed contracts loaded on demand
 
-### Option B — already in a Codex skills directory
+### Option B — install into a Codex skills directory
 
-If this repo is installed under your Codex skills path, invoke it by skill name:
+Install or copy this package so Codex can discover skill name:
 
 ```text
-windows-pwsh-agent-workbench
+codex-windows-workbench
 ```
 
-or by natural-language task that matches the skill description.
+Then invoke by skill name or by a natural-language task matching the skill description.
 
 ## How users should talk to the skill
 
 Good prompts:
 
-- “Use the Windows PowerShell Codex workbench skill to preview the default setup.”
+- “Use `codex-windows-workbench` to preview the default setup.”
 - “Audit my current Windows workbench and report missing required tools.”
 - “Apply Core + Agent only, then verify.”
 - “Enable safety hooks and show what files would change.”
@@ -132,7 +136,7 @@ pwsh -NoLogo -NoProfile -File .\scripts\Preflight-PwshAgentWindows.ps1 -Json
 ## Repository layout
 
 ```text
-SKILL.md                 # skill entry (this package root)
+SKILL.md                 # skill entry (name: codex-windows-workbench)
 agents/openai.yaml       # Codex skill interface metadata
 scripts/                 # skill runtime automation + contract tests
 scripts/Private/         # phase/state helpers
