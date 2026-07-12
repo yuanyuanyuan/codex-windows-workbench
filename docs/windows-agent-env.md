@@ -90,8 +90,7 @@ The default installs Core + Agent. Optional workloads are explicit:
 .\scripts\Initialize-PwshAgentWindows.ps1 -Full
 ```
 
-Preview, inspect, verify, or roll back managed profile state. The initializer does not
-run `-Verify` implicitly after installation, so run it explicitly after a real apply:
+Preview, inspect, verify, or roll back managed profile state. Default apply auto-runs smoke verification after success. Explicit `-Verify` remains available for later diagnosis. Preview/status/rollback:
 
 ```powershell
 .\scripts\Initialize-PwshAgentWindows.ps1 -WhatIf -Json
