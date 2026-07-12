@@ -159,6 +159,26 @@ if ($Deep) {
         node -e "console.log('node-ok')"
     }
 
+    Add-RuntimeCheck -Name 'node-version-24.18.0' -ScriptBlock {
+        $v = (node -v 2>&1 | Out-String).Trim()
+        if ($v -notmatch 'v?24\.18\.0') { throw "Expected Node 24.18.0, got $v" }
+        $v
+    }
+
+    Add-RuntimeCheck -Name 'codex-path-resolution' -Optional -ScriptBlock {
+        $cmd = Get-Command codex -ErrorAction SilentlyContinue
+        if (-not $cmd) { throw 'codex command not found' }
+        $sourceDir = Split-Path -Parent $cmd.Source
+        if ($sourceDir -like '*WindowsApps*') {
+            throw "codex resolves via WindowsApps internal path: $($cmd.Source)"
+        }
+        "codex=>$($cmd.Source)"
+    }
+
+    Add-RuntimeCheck -Name 'fnm-available' -Optional -ScriptBlock {
+        fnm --version
+    }
+
     Add-RuntimeCheck -Name 'python-eval' -ScriptBlock {
         python -c "print('python-ok')"
     }

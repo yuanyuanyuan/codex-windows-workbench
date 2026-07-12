@@ -1,0 +1,4 @@
+interface:
+  display_name: "Windows PowerShell Codex Workbench"
+  short_description: "Bootstrap a native Windows PowerShell 7 Codex workbench"
+  default_prompt: "Initialize or verify the Windows PowerShell 7 Codex workbench using this repository's scripts. Prefer Core + Agent by default. Never use WSL."

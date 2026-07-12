@@ -1,0 +1,14 @@
+{
+  "Version": "2026.07.12.1",
+  "Clients": [
+    {
+      "Name": "Codex",
+      "Source": "OpenAI official Windows distribution",
+      "InstallCommand": "Prefer existing %LOCALAPPDATA%\\OpenAI\\Codex\\bin\\codex.exe; do not force WindowsApps path",
+      "Command": "codex",
+      "VersionCommand": "codex --version",
+      "RequiresLogin": true,
+      "Public": true
+    }
+  ]
+}

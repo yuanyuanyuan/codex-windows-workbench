@@ -56,9 +56,24 @@ Install machine-local proxy and PATH overrides from a private settings repositor
 
 `GOPROXY` selects the Go module proxy service. `HTTP_PROXY` / `HTTPS_PROXY` decide whether traffic to that service goes through a local proxy.
 
+
+## Preflight
+
+Run host and declarative validation before apply:
+
+```powershell
+.\scripts\Preflight-PwshAgentWindows.ps1 -Json
+.\scripts\Preflight-PwshAgentWindows.ps1 -Configs .\config\windows-agent-core.winget,.\config\windows-agent-developer.winget -Json
+```
+
+`-Status -Json` and `-Verify -Json` include a machine-readable `Preflight` object.
+YAML/schema/resource errors are blockers. The known WinGet DSC module-publicity warning
+(`Microsoft.WinGet/Package` "not available publicly") is treated as a warning, not a blocker.
+`winget configure test` runs when supported; warning-only results are not silently treated as success.
 ## Low-Risk Apply
 
-One-click initializer (PowerShell 7 only):
+One-click initializer (PowerShell 7 only). Default path is Core + Agent and auto-verifies after apply:
+
 
 ```powershell
 .\scripts\Initialize-PwshAgentWindows.ps1
@@ -70,6 +85,8 @@ The default installs Core + Agent. Optional workloads are explicit:
 .\scripts\Initialize-PwshAgentWindows.ps1 -Developer
 .\scripts\Initialize-PwshAgentWindows.ps1 -NativeBuild
 .\scripts\Initialize-PwshAgentWindows.ps1 -Containers
+.\scripts\Initialize-PwshAgentWindows.ps1 -AgentClients
+.\scripts\Initialize-PwshAgentWindows.ps1 -EnableSafetyHooks
 .\scripts\Initialize-PwshAgentWindows.ps1 -Full
 ```
 

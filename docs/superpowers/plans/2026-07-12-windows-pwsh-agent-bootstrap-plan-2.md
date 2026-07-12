@@ -179,12 +179,12 @@ State 位置：
 - 修改：`scripts/Test-InitializePwshAgentWindows.ps1`
 - 修改：`scripts/Test-PwshAgentEnv.ps1`
 
-- [ ] 增加 PowerShell 7 rejection、默认 Core + Agent selection、Full phase selection 和 zero WSL-like actions 测试。
-- [ ] 增加测试，确认 `Invoke-Phase` 声明了 `SupportsShouldProcess`，并且直接执行 `-WhatIf` probe 时不会运行 action。
-- [ ] 增加测试，确认 WhatIf 不会创建 `%LOCALAPPDATA%\PwshAiAgent\state`。
-- [ ] 增加 sentinel status、stale sentinel handling 和 `-Force` behavior 测试。
-- [ ] 增加 required 与 recommended command failures 测试。
-- [ ] 执行测试脚本，确认新增测试在实现修改前会失败。
+- [x] 增加 PowerShell 7 rejection、默认 Core + Agent selection、Full phase selection 和 zero WSL-like actions 测试。
+- [x] 增加测试，确认 `Invoke-Phase` 声明了 `SupportsShouldProcess`，并且直接执行 `-WhatIf` probe 时不会运行 action。
+- [x] 增加测试，确认 WhatIf 不会创建 `%LOCALAPPDATA%\PwshAiAgent\state`。
+- [x] 增加 sentinel status、stale sentinel handling 和 `-Force` behavior 测试。
+- [x] 增加 required 与 recommended command failures 测试。
+- [x] 执行测试脚本，确认新增测试在实现修改前会失败。
 
 ### Task 2：拆分 Phase Definitions 和 Orchestration
 
@@ -193,11 +193,11 @@ State 位置：
 - 新建：`scripts/Private/PwshAiAgent.Phases.ps1`
 - 新建：`scripts/Private/PwshAiAgent.State.ps1`
 
-- [ ] 将 phase metadata、action-plan generation、sentinel read/write 和 manifest helpers 移到职责明确的 private scripts。
-- [ ] 保持 public entry point 作为唯一用户入口。
-- [ ] 通过 advanced functions 传递 ShouldProcess context；禁止在 non-advanced function 中直接访问 `$PSCmdlet`。
-- [ ] 保留当前 JSON shape：`Mode`、`Changed`、`StateRoot`、`Phases`、`Actions` 和 `Verification`。
-- [ ] 执行 parser checks 和 Task 1 tests。
+- [x] 将 phase metadata、action-plan generation、sentinel read/write 和 manifest helpers 移到职责明确的 private scripts。
+- [x] 保持 public entry point 作为唯一用户入口。
+- [x] 通过 advanced functions 传递 ShouldProcess context；禁止在 non-advanced function 中直接访问 `$PSCmdlet`。
+- [x] 保留当前 JSON shape：`Mode`、`Changed`、`StateRoot`、`Phases`、`Actions` 和 `Verification`。
+- [x] 执行 parser checks 和 Task 1 tests。
 
 ### Task 3：加入真正的 Preflight 和 Declarative Validation
 
@@ -206,14 +206,14 @@ State 位置：
 - 修改：`scripts/Initialize-PwshAgentWindows.ps1`
 - 修改：`docs/windows-agent-env.md`
 
-- [ ] 检查 PowerShell major version、Windows platform、winget availability 和 required local directories。
-- [ ] 在 command checks 前刷新 PATH。
-- [ ] 检查 Proxy reachability，但不记录 credentials 或 proxy secrets。
-- [ ] 对当前选择的 document 执行 `winget configure validate`。
-- [ ] 将 YAML/schema/resource errors 视为 blockers。
-- [ ] 将当前内置 DSC module-publicity warning 记录为 warning，而不是 blocker。
-- [ ] 只有在所选 configuration 和已安装 WinGet 支持时，才执行 `winget configure test`；不能把 warning-only 结果静默视为成功。
-- [ ] 将 machine-readable preflight report 加入 `-Status -Json` 和 `-Verify -Json`。
+- [x] 检查 PowerShell major version、Windows platform、winget availability 和 required local directories。
+- [x] 在 command checks 前刷新 PATH。
+- [x] 检查 Proxy reachability，但不记录 credentials 或 proxy secrets。
+- [x] 对当前选择的 document 执行 `winget configure validate`。
+- [x] 将 YAML/schema/resource errors 视为 blockers。
+- [x] 将当前内置 DSC module-publicity warning 记录为 warning，而不是 blocker。
+- [x] 只有在所选 configuration 和已安装 WinGet 支持时，才执行 `winget configure test`；不能把 warning-only 结果静默视为成功。
+- [x] 将 machine-readable preflight report 加入 `-Status -Json` 和 `-Verify -Json`。
 
 ### Task 4：让 Core + Agent 真正做到一键并自动验证
 
@@ -223,13 +223,13 @@ State 位置：
 - 修改：`config/pwsh-ai-agent-overlay.ps1`
 - 修改：`scripts/Test-PwshAgentEnv.ps1`
 
-- [ ] 使用 retry 和 logging 执行 Core 与 Agent phases。
-- [ ] 在 winget、Scoop、fnm 和 Corepack 操作后刷新 PATH。
-- [ ] 确保 Profile installation 是 additive 且 idempotent。
-- [ ] 验证 `fnm`、Node 24.18.0、npm、npx、pnpm、yarn 和 Codex 从目标路径解析。
-- [ ] 默认 apply 完成后自动执行 Node、Python、uv 和 PowerShell smoke tests。
-- [ ] 只有 required failures 返回 non-zero；recommended omissions 单独展示。
-- [ ] 即使 post-apply verification 成功，也保留显式 `-Verify` 供后续诊断。
+- [x] 使用 retry 和 logging 执行 Core 与 Agent phases。
+- [x] 在 winget、Scoop、fnm 和 Corepack 操作后刷新 PATH。
+- [x] 确保 Profile installation 是 additive 且 idempotent。
+- [x] 验证 `fnm`、Node 24.18.0、npm、npx、pnpm、yarn 和 Codex 从目标路径解析。
+- [x] 默认 apply 完成后自动执行 Node、Python、uv 和 PowerShell smoke tests。
+- [x] 只有 required failures 返回 non-zero；recommended omissions 单独展示。
+- [x] 即使 post-apply verification 成功，也保留显式 `-Verify` 供后续诊断。
 
 ### Task 5：加入显式的 AgentClients Phase
 
@@ -240,13 +240,13 @@ State 位置：
 - 修改：`scripts/Test-PwshAgentEnv.ps1`
 - 新建：`scripts/Test-AgentClients.ps1`
 
-- [ ] 每个 client 定义 `Name`、`Source`、`InstallCommand`、`Command`、`VersionCommand` 和 `RequiresLogin`。
-- [ ] 在加入 manifest 前，依据 official vendor documentation 验证每个 package/command。
-- [ ] 必须显式传入 `-AgentClients`；不能将 third-party clients 放入默认 Core phase。
-- [ ] 只有 official client distribution 要求时，才使用 Node/npm 安装。
-- [ ] 使用 logs 和 retry 执行安装，然后验证 command 与 version output。
-- [ ] 分别报告 `Installed`、`Missing`、`LoginRequired` 和 `InvocationFailed`。
-- [ ] 增加测试，证明不会写入 token、MCP URL 或 permissions file。
+- [x] 每个 client 定义 `Name`、`Source`、`InstallCommand`、`Command`、`VersionCommand` 和 `RequiresLogin`。
+- [x] 在加入 manifest 前，依据 official vendor documentation 验证每个 package/command。
+- [x] 必须显式传入 `-AgentClients`；不能将 third-party clients 放入默认 Core phase。
+- [x] 只有 official client distribution 要求时，才使用 Node/npm 安装。
+- [x] 使用 logs 和 retry 执行安装，然后验证 command 与 version output。
+- [x] 分别报告 `Installed`、`Missing`、`LoginRequired` 和 `InvocationFailed`。
+- [x] 增加测试，证明不会写入 token、MCP URL 或 permissions file。
 
 ### Task 6：加入 Modular Agent Governance，但不自动扩大信任边界
 
@@ -260,13 +260,13 @@ State 位置：
 - 修改：`scripts/Install-PwshAgentEnv.ps1`
 - 修改：`scripts/Initialize-PwshAgentWindows.ps1`
 
-- [ ] 使用从 `awesome-claude-code-toolkit` 学到的 taxonomy 定义 content categories。
-- [ ] 增加 Windows-native dangerous-git hook，覆盖 force push、hard reset、aggressive clean、forced checkout、amend 和 interactive rebase。
-- [ ] 使用 `-EnableSafetyHooks` 显式启用 hooks。
-- [ ] 合并 hook/rule configuration 前备份现有 Agent settings。
-- [ ] 分离 Codex、Claude、Gemini 和 Copilot 内容，避免一个 client 占用另一个 client 的 config。
-- [ ] 为 content installation 增加 dry-run、status 和 rollback 输出。
-- [ ] 禁止隐式安装 marketplace plugins 或 remote MCP servers。
+- [x] 使用从 `awesome-claude-code-toolkit` 学到的 taxonomy 定义 content categories。
+- [x] 增加 Windows-native dangerous-git hook，覆盖 force push、hard reset、aggressive clean、forced checkout、amend 和 interactive rebase。
+- [x] 使用 `-EnableSafetyHooks` 显式启用 hooks。
+- [x] 合并 hook/rule configuration 前备份现有 Agent settings。
+- [x] 分离 Codex、Claude、Gemini 和 Copilot 内容，避免一个 client 占用另一个 client 的 config。
+- [x] 为 content installation 增加 dry-run、status 和 rollback 输出。
+- [x] 禁止隐式安装 marketplace plugins 或 remote MCP servers。
 
 ### Task 7：完成重量级 Workload 行为
 
@@ -276,11 +276,11 @@ State 位置：
 - 修改：`scripts/Test-PwshAgentEnv.ps1`
 - 修改：`docs/windows-agent-env.md`
 
-- [ ] 验证 Visual Studio Build Tools override 确实选择 MSVC 和 Windows SDK components。
-- [ ] 检测 elevation 和 reboot-required installer results。
-- [ ] 安装后定位 MSBuild 和 vswhere。
-- [ ] 只有选择 NativeBuild 时，才执行 native compile smoke test。
-- [ ] Baseline 中 `msbuild` 保持 recommended；NativeBuild verification 时必须要求它存在。
+- [x] 验证 Visual Studio Build Tools override 确实选择 MSVC 和 Windows SDK components。
+- [x] 检测 elevation 和 reboot-required installer results。
+- [x] 安装后定位 MSBuild 和 vswhere。
+- [x] 只有选择 NativeBuild 时，才执行 native compile smoke test。
+- [x] Baseline 中 `msbuild` 保持 recommended；NativeBuild verification 时必须要求它存在。
 
 ### Task 8：完成 Docker Phase，但不加入 WSL Compatibility
 
@@ -289,11 +289,11 @@ State 位置：
 - 修改：`scripts/Test-PwshAgentEnv.ps1`
 - 修改：`docs/windows-agent-env.md`
 
-- [ ] 只有使用 `-Containers` 或 `-Full` 时安装 Docker Desktop。
-- [ ] 不执行任何 WSL commands 或 backend selection commands。
-- [ ] 分别验证 `docker version` 的 client 和 server。
-- [ ] 分别报告 daemon、virtualization、permissions 或 named-pipe failures。
-- [ ] 只有满足选定的 success policy 时，才将 Containers 标记为完成。
+- [x] 只有使用 `-Containers` 或 `-Full` 时安装 Docker Desktop。
+- [x] 不执行任何 WSL commands 或 backend selection commands。
+- [x] 分别验证 `docker version` 的 client 和 server。
+- [x] 分别报告 daemon、virtualization、permissions 或 named-pipe failures。
+- [x] 只有满足选定的 success policy 时，才将 Containers 标记为完成。
 
 ### Task 9：完成 Verification、Documentation 和 CI
 
@@ -304,15 +304,15 @@ State 位置：
 - 修改：`docs/gap-analysis-github-windows-bootstrap.md`
 - 新建：`.github/workflows/pwsh-agent-bootstrap.yml`
 
-- [ ] 对每个 PowerShell 文件执行 parser checks。
-- [ ] 对 default 和 Full plans 执行 WhatIf，并断言 zero WSL-like actions。
-- [ ] 执行 Status 和 Verify JSON parsing checks。
-- [ ] 执行 Node/Python/Go/uv smoke tests。
-- [ ] 对三个 declarative documents 执行 winget validation，并保留已知 warning 的解释。
-- [ ] 在可用时执行 PSScriptAnalyzer。
-- [ ] 如果安装了 graphify executable，执行 `graphify update`；否则记录 tool unavailable 状态。
-- [ ] 明确记录 CI job 不得执行真实 machine installation。
-- [ ] 记录 default、Developer、NativeBuild、Containers、AgentClients、Full、Verify、Status 和 Rollback 的准确命令。
+- [x] 对每个 PowerShell 文件执行 parser checks。
+- [x] 对 default 和 Full plans 执行 WhatIf，并断言 zero WSL-like actions。
+- [x] 执行 Status 和 Verify JSON parsing checks。
+- [x] 执行 Node/Python/Go/uv smoke tests。
+- [x] 对三个 declarative documents 执行 winget validation，并保留已知 warning 的解释。
+- [x] 在可用时执行 PSScriptAnalyzer。
+- [x] 如果安装了 graphify executable，执行 `graphify update`；否则记录 tool unavailable 状态。
+- [x] 明确记录 CI job 不得执行真实 machine installation。
+- [x] 记录 default、Developer、NativeBuild、Containers、AgentClients、Full、Verify、Status 和 Rollback 的准确命令。
 
 ## 7. 验收标准
 

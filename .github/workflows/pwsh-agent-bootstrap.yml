@@ -1,0 +1,66 @@
+name: pwsh-agent-bootstrap
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  contract:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parser checks
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = Get-ChildItem -Path .\scripts -Recurse -Filter *.ps1
+          foreach ($f in $files) {
+            $tokens = $null; $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($f.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors -and $errors.Count -gt 0) {
+              throw "Parser failed: $($f.FullName): $($errors[0].Message)"
+            }
+          }
+          Write-Host "Parsed $($files.Count) PowerShell files."
+      - name: Contract tests (no real package installs)
+        shell: pwsh
+        env:
+          PWSH_AI_AGENT_SKIP_WINGET_PREFLIGHT: '1'
+        run: |
+          pwsh -NoLogo -NoProfile -File .\scripts\Test-InitializePwshAgentWindows.ps1
+          pwsh -NoLogo -NoProfile -File .\scripts\Test-AgentClients.ps1
+      - name: WhatIf default and Full (zero WSL-like actions)
+        shell: pwsh
+        env:
+          PWSH_AI_AGENT_SKIP_WINGET_PREFLIGHT: '1'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($args in @(@('-WhatIf','-Json'), @('-Full','-WhatIf','-Json'))) {
+            $json = & pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 @args
+            $report = $json | ConvertFrom-Json
+            if ($report.Changed) { throw 'WhatIf reported Changed=true' }
+            $bad = @($report.Actions | Where-Object { $_.Action -match 'WSL|bash|Linux|apt|brew' -or $_.Target -match 'WSL|bash|Linux|apt|brew' })
+            if ($bad.Count -gt 0) { throw "WSL-like action planned: $($bad | ConvertTo-Json -Compress)" }
+          }
+      - name: Status/Verify JSON shape
+        shell: pwsh
+        env:
+          PWSH_AI_AGENT_SKIP_WINGET_PREFLIGHT: '1'
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $status = & pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Status -Json | ConvertFrom-Json
+          if ($status.Mode -ne 'Status') { throw 'Status mode mismatch' }
+          if (-not $status.Preflight) { throw 'Status missing Preflight' }
+          # Verify may fail on missing tools in fresh CI images; still require parseable JSON mode.
+          $verifyRaw = & pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify -Json 2>&1 | Out-String
+          if ($verifyRaw -notmatch '"Mode"\s*:\s*"Verify"') { throw "Verify JSON missing Mode=Verify. Output=$verifyRaw" }
+      - name: PSScriptAnalyzer (optional)
+        shell: pwsh
+        run: |
+          if (Get-Module -ListAvailable PSScriptAnalyzer) {
+            Invoke-ScriptAnalyzer -Path .\scripts -Recurse -Severity Warning,Error | Format-Table -AutoSize
+          } else {
+            Write-Host 'PSScriptAnalyzer not installed; skipping.'
+          }
+        continue-on-error: true
+      # CI must not perform real machine installation (no winget install / scoop install / Docker daemon).
