@@ -42,8 +42,7 @@
 用户看到的调用入口只有：
 
 ```text
-$stark-codex-windows-workbench   # Codex
-/stark-codex-windows-workbench   # Claude Code
+$stark-codex-windows-workbench
 ```
 
 错误模式：
@@ -108,8 +107,7 @@ README 主角必须是 skill，并且按**价值优先**的阅读结构写：
 应写成：
 
 ```text
-$stark-codex-windows-workbench   # Codex
-/stark-codex-windows-workbench   # Claude Code
+$stark-codex-windows-workbench
 ```
 
 参数路由放在 skill 内部；README 不承担命令百科。
@@ -123,8 +121,6 @@ SKILL.md
 agents/openai.yaml
 package.json
 .codex-plugin/plugin.json
-.claude-plugin/plugin.json
-.claude-plugin/marketplace.json
 scripts/
 docs/install.md
 ```
@@ -286,7 +282,6 @@ codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench
 | RedSkill | 提供固定安装话术 | 分发取决于商店上架；仓库侧话术齐备 |
 | npx skills add | `skills/<name>/SKILL.md` 可被 skills CLI 发现并完整拷贝 skill 目录 | 通过：Found 1 skill；安装目录含 scripts/config |
 | Codex Plugin CLI | `.codex-plugin/plugin.json` 等清单齐全 | 清单校验通过；安装走 CLI 不是聊天 `/plugin` |
-| Manual clone | 根目录即 skill 目录 | 通过：clone 到 `~\.codex\skills\...` 或 `~\.claude\skills\...` |
 
 布局决策：
 
@@ -465,7 +460,7 @@ Acceptance report template
 中英文 README 增加 `Uninstall / 卸载`：
 
 1. 可选先 `-Rollback` 回滚受管设置
-2. 删除 agents/codex/claude skill 目录
+2. 删除 agents/codex skill 目录
 3. 清理历史旧名目录
 4. 可选移除 Codex plugin 条目
 5. 明确卸载**不会**卸载 winget/scoop 包、不会清无关 Profile、不会退出登录
@@ -544,7 +539,6 @@ Acceptance report template
   "$env:USERPROFILE\.agents\skills\stark-codex-windows-workbench"
   "$env:USERPROFILE\.agents\skills\codex-windows-workbench"
   "$env:USERPROFILE\.codex\skills\stark-codex-windows-workbench"
-  "$env:USERPROFILE\.claude\skills\stark-codex-windows-workbench"
 ) | ForEach-Object {
   [pscustomobject]@{
     Path = $_

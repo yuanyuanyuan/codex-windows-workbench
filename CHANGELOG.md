@@ -9,7 +9,7 @@ First public release of `stark-codex-windows-workbench`.
 - Native Windows + PowerShell 7 Codex workbench skill
 - Default path: Core + Agent only
 - Multi-channel install: RedSkill, `npx skills add`, Codex Plugin CLI, manual clone/copy
-- Direct invocation: `$stark-codex-windows-workbench` (Codex) or `/stark-codex-windows-workbench` (Claude Code)
+- Direct invocation: `$stark-codex-windows-workbench`
 - Safe preview first (`-WhatIf`), explicit Apply, Status/Verify/Rollback
 - Human-readable install impact summary (`Summary` / `Impact`)
 - Agent-executable install guide: `docs/install.md`

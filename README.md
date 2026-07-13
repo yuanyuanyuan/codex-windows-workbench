@@ -54,7 +54,7 @@ This skill collapses those problems into one direct invocation path and hardens 
 
 | | Before | After |
 |---|---|---|
-| Entry | Many ad-hoc scripts and chat instructions | Call `$stark-codex-windows-workbench` (Codex) or `/stark-codex-windows-workbench` (Claude Code) |
+| Entry | Many ad-hoc scripts and chat instructions | Call `$stark-codex-windows-workbench` |
 | Host model | WSL/bash leakage, mixed shells | Native Windows + PowerShell 7 only |
 | Change safety | Install first, discover impact later | `-WhatIf` preview, then explicit Apply |
 | Baseline | Machine-specific tool soup | Managed Core + Agent default |
@@ -112,26 +112,14 @@ codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench
 `npx skills` installs the skill folder under `skills/stark-codex-windows-workbench/` (not the whole repo root).
 
 ```powershell
-# Windows + Codex
 git clone --depth 1 https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:TEMP\stark-codex-windows-workbench
 Copy-Item -Recurse -Force $env:TEMP\stark-codex-windows-workbench\skills\stark-codex-windows-workbench $env:USERPROFILE\.codex\skills\stark-codex-windows-workbench
-
-# Windows + Claude Code
-Copy-Item -Recurse -Force $env:TEMP\stark-codex-windows-workbench\skills\stark-codex-windows-workbench $env:USERPROFILE\.claude\skills\stark-codex-windows-workbench
 ```
 
 ## Use
 
-Codex:
-
 ```text
 $stark-codex-windows-workbench
-```
-
-Claude Code:
-
-```text
-/stark-codex-windows-workbench
 ```
 
 Default behavior after invoke:
@@ -162,20 +150,16 @@ It does **not** uninstall winget/scoop packages installed by Apply.
 pwsh -NoLogo -NoProfile -File "$env:USERPROFILE\.agents\skills\stark-codex-windows-workbench\scripts\Initialize-PwshAgentWindows.ps1" -Rollback -Confirm:$false -Json
 ```
 
-If the skill is only under Codex/Claude skill dirs, replace the path with your installed skill root.
-
 ### 2) Remove skill directories
 
 ```powershell
 $paths = @(
   "$env:USERPROFILE\.agents\skills\stark-codex-windows-workbench"
   "$env:USERPROFILE\.codex\skills\stark-codex-windows-workbench"
-  "$env:USERPROFILE\.claude\skills\stark-codex-windows-workbench"
   # legacy names from earlier renames
   "$env:USERPROFILE\.agents\skills\codex-windows-workbench"
   "$env:USERPROFILE\.agents\skills\windows-pwsh-agent-workbench"
   "$env:USERPROFILE\.codex\skills\codex-windows-workbench"
-  "$env:USERPROFILE\.claude\skills\codex-windows-workbench"
 )
 $paths | Where-Object { Test-Path $_ } | ForEach-Object {
   Remove-Item -LiteralPath $_ -Recurse -Force
@@ -201,7 +185,6 @@ If your Codex CLI version does not support `plugin remove`, delete the installed
 
 | Step | What runs | Machine effect | What you see |
 |------|-----------|----------------|--------------|
-| 1. Call skill | `$stark-codex-windows-workbench` (Codex) or `/stark-codex-windows-workbench` (Claude Code) | No machine change yet | Agent loads skill instructions |
 | 2. Preflight | `Preflight-PwshAgentWindows.ps1 -Json` | Read-only checks | Host/tool blockers and warnings |
 | 3. Preview | `Initialize-...ps1 -WhatIf -Json` | **No changes** (`Changed=false`) | `Selected`, `Phases`, `Actions`, `SafetyHooks` |
 | 4. Confirm | Agent asks you | No changes | Clear Core + Agent impact summary |
@@ -307,8 +290,6 @@ skills/stark-codex-windows-workbench/
   config/
   references/
 .codex-plugin/plugin.json
-.claude-plugin/plugin.json
-.claude-plugin/marketplace.json
 package.json
 docs/
 ```
@@ -316,3 +297,4 @@ docs/
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+

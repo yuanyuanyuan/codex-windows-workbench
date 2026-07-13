@@ -7,16 +7,8 @@ description: Maintain a native Windows PowerShell 7 workbench for Codex. Use whe
 
 ## Invocation
 
-Codex:
-
 ```text
 $stark-codex-windows-workbench
-```
-
-Claude Code:
-
-```text
-/stark-codex-windows-workbench
 ```
 
 ## Role

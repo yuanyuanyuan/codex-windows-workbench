@@ -10,7 +10,6 @@ Skill name, package folder, plugin manifests, and package.json stay aligned on `
 ## Steps
 1. Read skill frontmatter name from `skills/.../SKILL.md`.
 2. Read `.codex-plugin/plugin.json` name.
-3. Read `.claude-plugin/plugin.json` name if present.
 4. Read `package.json` name.
 5. Compare to canonical identity.
 

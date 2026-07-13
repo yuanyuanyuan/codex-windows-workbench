@@ -184,11 +184,6 @@ try {
     $codexPlugin = Get-Content -LiteralPath (Join-Path $repoRoot '.codex-plugin\plugin.json') -Raw | ConvertFrom-Json
     if ($codexPlugin.name -ne $expected) { throw ".codex-plugin name='$($codexPlugin.name)' expected='$expected'" }
 
-    $claudePluginPath = Join-Path $repoRoot '.claude-plugin\plugin.json'
-    if (Test-Path -LiteralPath $claudePluginPath) {
-        $claudePlugin = Get-Content -LiteralPath $claudePluginPath -Raw | ConvertFrom-Json
-        if ($claudePlugin.name -ne $expected) { throw ".claude-plugin name='$($claudePlugin.name)' expected='$expected'" }
-    }
 
     $results.Add((New-CaseResult -Id 'UAT-002' -Title 'Identity consistency' -Tier 'A' -Passed $true -Message "identity=$expected")) | Out-Null
 } catch {
