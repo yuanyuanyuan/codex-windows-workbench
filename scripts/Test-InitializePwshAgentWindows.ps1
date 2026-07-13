@@ -62,13 +62,67 @@ function ConvertFrom-JsonOutput {
     param([Parameter(Mandatory = $true)][object[]]$Output)
 
     $text = ($Output | ForEach-Object { "$_" }) -join "`n"
-    # Prefer the first JSON object when progress text is mixed in.
-    $start = $text.IndexOf('{')
-    $end = $text.LastIndexOf('}')
-    Assert-True -Condition ($start -ge 0 -and $end -gt $start) -Message "No JSON object found in output:`n$text"
-    return $text.Substring($start, $end - $start + 1) | ConvertFrom-Json
-}
+    $preferredModes = @('WhatIf', 'Status', 'Apply', 'Verify', 'Rollback', 'PreflightFailed')
 
+    $candidates = New-Object System.Collections.Generic.List[int]
+    for ($i = 0; $i -lt $text.Length; $i++) {
+        if ($text[$i] -eq '{') { $candidates.Add($i) | Out-Null }
+    }
+
+    $parsed = New-Object System.Collections.Generic.List[object]
+    foreach ($startIdx in $candidates) {
+        $slice = $text.Substring($startIdx)
+        if ($slice -notmatch '"Mode"\s*:') { continue }
+
+        $depth = 0
+        $end = -1
+        $inString = $false
+        $escape = $false
+        for ($i = 0; $i -lt $slice.Length; $i++) {
+            $ch = $slice[$i]
+            if ($inString) {
+                if ($escape) { $escape = $false; continue }
+                if ($ch -eq '\') { $escape = $true; continue }
+                if ($ch -eq '"') { $inString = $false }
+                continue
+            }
+            switch ($ch) {
+                '"' { $inString = $true }
+                '{' { $depth++ }
+                '}' {
+                    $depth--
+                    if ($depth -eq 0) { $end = $i; break }
+                }
+            }
+            if ($end -ge 0) { break }
+        }
+        if ($end -lt 0) { continue }
+
+        $json = $slice.Substring(0, $end + 1)
+        try {
+            $obj = $json | ConvertFrom-Json
+            if ($obj.PSObject.Properties.Name -contains 'Mode') {
+                $parsed.Add([pscustomobject]@{
+                        Start = $startIdx
+                        Mode  = [string]$obj.Mode
+                        Object = $obj
+                    }) | Out-Null
+            }
+        } catch {
+            continue
+        }
+    }
+
+    Assert-True -Condition ($parsed.Count -gt 0) -Message "No JSON report object with Mode found in output:`n$text"
+
+    # Prefer outer workbench report modes over nested Preflight objects.
+    $preferred = @($parsed | Where-Object { $preferredModes -contains $_.Mode } | Sort-Object Start -Descending)
+    if ($preferred.Count -gt 0) {
+        return $preferred[0].Object
+    }
+
+    return ($parsed | Sort-Object Start -Descending | Select-Object -First 1).Object
+}
 $entryPoint = Join-Path $PSScriptRoot 'Initialize-PwshAgentWindows.ps1'
 $envTest = Join-Path $PSScriptRoot 'Test-PwshAgentEnv.ps1'
 $privateRoot = Join-Path $PSScriptRoot 'Private'
@@ -155,6 +209,15 @@ try {
         Assert-True -Condition ($planned -contains $name) -Message "Default WhatIf must mark $name as Planned."
     }
     Assert-True -Condition ($whatIfReport.SafetyHooks -eq $false) -Message 'Default WhatIf must not enable SafetyHooks.'
+    Assert-True -Condition ($null -ne $whatIfReport.Impact) -Message 'WhatIf report must include Impact.'
+    Assert-True -Condition (@($whatIfReport.Summary).Count -gt 0) -Message 'WhatIf report must include human-readable Summary lines.'
+    Assert-True -Condition (@($whatIfReport.Impact.WingetPackages).Count -gt 0) -Message 'WhatIf Impact must list Core winget packages.'
+    Assert-True -Condition (@($whatIfReport.Impact.ScoopPackages).Count -gt 0) -Message 'WhatIf Impact must list Core scoop packages.'
+    Assert-True -Condition (@($whatIfReport.Impact.NotSelected).Count -ge 4) -Message 'WhatIf Impact.NotSelected must include optional workloads.'
+    Assert-True -Condition (@($whatIfReport.Actions | Where-Object { $_.PSObject.Properties.Name -contains 'Description' -and $_.Description }).Count -gt 0) -Message 'Plan actions must include Description for readability.'
+    $summaryText = @($whatIfReport.Summary) -join "`n"
+    Assert-True -Condition ($summaryText -match 'Microsoft\.PowerShell|winget-configure') -Message 'Summary must mention winget packages or winget-configure.'
+    Assert-True -Condition ($summaryText -match 'Will NOT do by default') -Message 'Summary must include explicit non-actions.'
 
     $hooks = Invoke-Entry -StateRoot (Join-Path $tempRoot 'hooks-whatif') -ArgumentList @('-EnableSafetyHooks', '-WhatIf', '-Json')
     Assert-Equal -Expected 0 -Actual $hooks.ExitCode -Message '-EnableSafetyHooks -WhatIf -Json must succeed.'
@@ -237,7 +300,11 @@ try {
         # RecommendedMissing does not alone force non-zero when RequiredMissing is 0.
         $envJson = & pwsh -NoLogo -NoProfile -File $envTest -Json 2>&1
         $envCode = $LASTEXITCODE
-        $envReport = ConvertFrom-JsonOutput -Output @($envJson)
+        $envText = (@($envJson) | ForEach-Object { "$_" }) -join "`n"
+        $envStart = $envText.IndexOf('{')
+        $envEnd = $envText.LastIndexOf('}')
+        Assert-True -Condition ($envStart -ge 0 -and $envEnd -gt $envStart) -Message "Env test did not return JSON:`n$envText"
+        $envReport = $envText.Substring($envStart, $envEnd - $envStart + 1) | ConvertFrom-Json
         Assert-True -Condition ($null -ne $envReport.Summary.RequiredMissing) -Message 'Env JSON must include RequiredMissing.'
         Assert-True -Condition ($null -ne $envReport.Summary.RecommendedMissing) -Message 'Env JSON must include RecommendedMissing.'
         if ($envReport.Summary.RequiredMissing -eq 0) {

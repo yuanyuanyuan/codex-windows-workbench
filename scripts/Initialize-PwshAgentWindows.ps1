@@ -38,8 +38,47 @@ $sentinelVersion = '2026.07.12.1'
 . (Join-Path $PSScriptRoot 'Private\PwshAiAgent.Phases.ps1')
 
 function Write-ProgressLine {
-    param([Parameter(Mandatory = $true)][string]$Message)
-    if (-not $Json) { Write-Host $Message }
+    param(
+        [Parameter(Mandatory = $true)][string]$Message,
+        [ValidateSet('INFO', 'STEP', 'OK', 'SKIP', 'WARN', 'ERROR')]$Level = 'INFO'
+    )
+    $stamp = (Get-Date).ToString('HH:mm:ss')
+    $line = "[$stamp][$Level] $Message"
+    # Always show human-readable progress, including under -Json.
+    # Write to information stream so JSON parsers can still extract the final object from stdout.
+    Write-Host $line
+}
+
+function Write-HumanSummary {
+    param([Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$Lines)
+    Write-Host ''
+    Write-Host '======== Workbench Summary ========'
+    foreach ($line in @($Lines)) {
+        Write-Host $line
+    }
+    Write-Host '==================================='
+    Write-Host ''
+}
+
+function New-StepResult {
+    param(
+        [Parameter(Mandatory = $true)][string]$Phase,
+        [Parameter(Mandatory = $true)][string]$Action,
+        [Parameter(Mandatory = $true)][string]$Status,
+        [string]$Target = '',
+        [string]$Reason = '',
+        [string[]]$Items = @(),
+        [string]$LogPath = ''
+    )
+    return [pscustomobject]@{
+        Phase   = $Phase
+        Action  = $Action
+        Status  = $Status
+        Target  = $Target
+        Reason  = $Reason
+        Items   = @($Items)
+        LogPath = $LogPath
+    }
 }
 
 function Invoke-LoggedCommand {
@@ -49,13 +88,22 @@ function Invoke-LoggedCommand {
     )
     Ensure-StateDirectories
     $logPath = Join-Path $logRoot "$Name-$((Get-Date).ToString('yyyyMMdd-HHmmss'))-$([guid]::NewGuid().ToString('N')).log"
+    Write-ProgressLine "Running $Name ..." -Level STEP
+    Write-ProgressLine "Log file: $logPath" -Level INFO
     $output = @(& $ScriptBlock 2>&1)
     $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { $LASTEXITCODE }
     $output | Out-File -LiteralPath $logPath -Encoding utf8
     if ($exitCode -ne 0) {
+        Write-ProgressLine "$Name failed with exit code $exitCode" -Level ERROR
         throw "$Name failed with exit code $exitCode. See $logPath"
     }
-    return $output
+    Write-ProgressLine "$Name completed" -Level OK
+    return [pscustomobject]@{
+        Name    = $Name
+        LogPath = $logPath
+        Output  = $output
+        ExitCode = 0
+    }
 }
 
 function Invoke-Retry {
@@ -97,13 +145,18 @@ function Invoke-WingetConfigure {
 }
 
 function Install-Scoop {
-    if (Get-Command scoop -ErrorAction SilentlyContinue) { return }
+    if (Get-Command scoop -ErrorAction SilentlyContinue) {
+        Write-ProgressLine 'Scoop already available; bootstrap skipped.' -Level SKIP
+        return [pscustomobject]@{ Status = 'Skipped'; Reason = 'scoop already available'; Items = @('scoop') }
+    }
     $download = Join-Path ([System.IO.Path]::GetTempPath()) "install-scoop-$([guid]::NewGuid().ToString('N')).ps1"
     try {
+        Write-ProgressLine 'Bootstrapping Scoop package manager...' -Level STEP
         Invoke-WebRequest -Uri 'https://get.scoop.sh' -OutFile $download -UseBasicParsing
         Invoke-LoggedCommand -Name 'scoop-bootstrap' -ScriptBlock {
             & pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File $download
-        }
+            if ($LASTEXITCODE -ne 0) { throw "scoop bootstrap exited with $LASTEXITCODE" }
+        } | Out-Null
         if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
             if (Test-Path -LiteralPath $refreshPath) { . $refreshPath | Out-Null }
         }
@@ -113,23 +166,41 @@ function Install-Scoop {
     if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) {
         throw 'Scoop bootstrap completed but scoop is still unavailable.'
     }
+    Write-ProgressLine 'Scoop bootstrap complete.' -Level OK
+    return [pscustomobject]@{ Status = 'Installed'; Reason = 'bootstrapped scoop'; Items = @('scoop') }
 }
 
 function Install-ScoopPackageList {
     param([Parameter(Mandatory = $true)][string[]]$Packages)
+    $installed = [System.Collections.Generic.List[string]]::new()
+    $skipped = [System.Collections.Generic.List[string]]::new()
     foreach ($package in $Packages) {
         $command = switch ($package) {
             'ripgrep' { 'rg'; break }
             '7zip' { '7z'; break }
             default { $package }
         }
-        if (Get-Command $command -ErrorAction SilentlyContinue) { continue }
+        if (Get-Command $command -ErrorAction SilentlyContinue) {
+            Write-ProgressLine "Scoop package already present: $package ($command)" -Level SKIP
+            $skipped.Add($package) | Out-Null
+            continue
+        }
+        Write-ProgressLine "Installing scoop package: $package" -Level STEP
         Invoke-LoggedCommand -Name "scoop-$package" -ScriptBlock {
             & scoop install --skip-update $package
             if ($LASTEXITCODE -ne 0) { throw "scoop install $package exited with $LASTEXITCODE" }
         } | Out-Null
+        $installed.Add($package) | Out-Null
     }
     if (Test-Path -LiteralPath $refreshPath) { . $refreshPath | Out-Null }
+    Write-ProgressLine ("Scoop packages installed: " + ($(if ($installed.Count) { $installed -join ', ' } else { '(none)' }))) -Level OK
+    Write-ProgressLine ("Scoop packages skipped: " + ($(if ($skipped.Count) { $skipped -join ', ' } else { '(none)' }))) -Level INFO
+    return [pscustomobject]@{
+        Status    = 'Complete'
+        Installed = @($installed)
+        Skipped   = @($skipped)
+        Items     = @($Packages)
+    }
 }
 
 function Install-GoTools {
@@ -269,23 +340,26 @@ function Invoke-Phase {
     )
     $existing = Get-PhaseStatus $Name
     if ($existing.Status -eq 'Complete' -and -not $Force) {
-        Write-ProgressLine "[$Name] already complete; use -Force to rerun."
+        Write-ProgressLine "[$Name] already complete; use -Force to rerun." -Level SKIP
         return [pscustomobject]@{
             Name   = $Name
             Status = 'Skipped'
             Detail = 'Valid sentinel exists.'
         }
     }
-    Write-ProgressLine "[$Name] starting"
+    Write-ProgressLine "[$Name] starting" -Level STEP
     if ($PSCmdlet.ShouldProcess($Name, 'Initialize phase')) {
-        & $Action
+        $actionResult = & $Action
         Complete-Phase $Name
+        Write-ProgressLine "[$Name] complete" -Level OK
         return [pscustomobject]@{
             Name   = $Name
             Status = 'Complete'
             Detail = 'Phase completed.'
+            Result = $actionResult
         }
     }
+    Write-ProgressLine "[$Name] preview only (WhatIf)" -Level INFO
     return [pscustomobject]@{
         Name   = $Name
         Status = 'WhatIf'
@@ -298,30 +372,74 @@ function Invoke-Apply {
         throw 'winget is required for the Windows baseline.'
     }
     if (Test-Path -LiteralPath $refreshPath) { . $refreshPath | Out-Null }
+
     $results = [System.Collections.Generic.List[object]]::new()
+    $stepResults = [System.Collections.Generic.List[object]]::new()
+
+    Write-ProgressLine 'Starting Apply for selected phases...' -Level STEP
+    Write-ProgressLine ("Selected: " + ((@(Get-SelectedPhaseNames) -join ', '))) -Level INFO
+
     foreach ($phase in (Get-SelectedPhases)) {
         $result = switch ($phase.Name) {
             'Core' {
                 Invoke-Phase 'Core' {
-                    Invoke-WingetConfigure (Join-Path $configRoot $phase.Config) 'Core'
-                    Install-Scoop
-                    Install-ScoopPackageList @(
-                        'ripgrep', 'fd', 'fzf', 'jq', 'bat', 'delta', 'yq', '7zip', 'zip', 'nuget'
-                    )
+                    $coreConfig = Join-Path $configRoot $phase.Config
+                    $corePackages = @(Get-WingetConfigPackages -ConfigFile $coreConfig)
+                    Write-ProgressLine ("Core winget packages: " + (($corePackages | ForEach-Object Id) -join ', ')) -Level INFO
+                    Invoke-WingetConfigure $coreConfig 'Core'
+                    $stepResults.Add((New-StepResult -Phase 'Core' -Action 'winget-configure' -Status 'Completed' -Target $coreConfig -Items @($corePackages | ForEach-Object Id) -Reason 'winget configure applied')) | Out-Null
+
+                    $scoopBootstrap = Install-Scoop
+                    $stepResults.Add((New-StepResult -Phase 'Core' -Action 'scoop-bootstrap' -Status $scoopBootstrap.Status -Target 'https://get.scoop.sh' -Items @('scoop') -Reason $scoopBootstrap.Reason)) | Out-Null
+
+                    $scoopPackages = @('ripgrep', 'fd', 'fzf', 'jq', 'bat', 'delta', 'yq', '7zip', 'zip', 'nuget')
+                    $scoopResult = Install-ScoopPackageList $scoopPackages
+                    $stepResults.Add((New-StepResult -Phase 'Core' -Action 'scoop-install' -Status 'Completed' -Target ($scoopPackages -join ' ') -Items $scoopPackages -Reason ("installed=$($scoopResult.Installed -join ', '); skipped=$($scoopResult.Skipped -join ', ')"))) | Out-Null
+                    return [pscustomobject]@{
+                        WingetPackages = @($corePackages | ForEach-Object Id)
+                        ScoopInstalled = @($scoopResult.Installed)
+                        ScoopSkipped   = @($scoopResult.Skipped)
+                    }
                 }
             }
             'Agent' {
-                Invoke-Phase 'Agent' { Install-AgentProfile }
+                Invoke-Phase 'Agent' {
+                    Write-ProgressLine 'Installing managed Agent profile overlay...' -Level STEP
+                    Install-AgentProfile
+                    $agentRoot = Join-Path $env:USERPROFILE '.config\pwsh-ai'
+                    $stepResults.Add((New-StepResult -Phase 'Agent' -Action 'install-profile-overlay' -Status 'Completed' -Target $agentRoot -Items @(
+                                (Join-Path $agentRoot 'pwsh-ai-agent-overlay.ps1')
+                                (Join-Path $agentRoot 'pwsh-ai-core.ps1')
+                            ) -Reason 'managed overlay written')) | Out-Null
+                    $stepResults.Add((New-StepResult -Phase 'Agent' -Action 'initialize-managed-agent-directories' -Status 'Completed' -Target (Join-Path $agentRoot 'hooks') -Items @(
+                                (Join-Path $agentRoot 'hooks')
+                                (Join-Path $agentRoot 'mcp')
+                                (Join-Path $agentRoot 'skills')
+                                (Join-Path $agentRoot 'commands')
+                                (Join-Path $agentRoot 'rules')
+                                (Join-Path $agentRoot 'agents')
+                            ) -Reason 'managed directories ensured')) | Out-Null
+                    return [pscustomobject]@{ AgentRoot = $agentRoot }
+                }
             }
             'AgentClients' {
-                Invoke-Phase 'AgentClients' { Install-AgentClientsPhase }
+                Invoke-Phase 'AgentClients' {
+                    Write-ProgressLine 'Probing agent clients (Codex presence/version only)...' -Level STEP
+                    Install-AgentClientsPhase
+                    $stepResults.Add((New-StepResult -Phase 'AgentClients' -Action 'verify-agent-clients' -Status 'Completed' -Target 'Codex probe only' -Reason 'no install/login performed')) | Out-Null
+                }
             }
             'Developer' {
                 Invoke-Phase 'Developer' {
-                    Invoke-WingetConfigure (Join-Path $configRoot $phase.Config) 'Developer'
-                    Install-ScoopPackageList @('golangci-lint', 'air')
+                    $devConfig = Join-Path $configRoot $phase.Config
+                    Invoke-WingetConfigure $devConfig 'Developer'
+                    $stepResults.Add((New-StepResult -Phase 'Developer' -Action 'winget-configure' -Status 'Completed' -Target $devConfig -Items @((Get-WingetConfigPackages -ConfigFile $devConfig) | ForEach-Object Id))) | Out-Null
+                    $scoopResult = Install-ScoopPackageList @('golangci-lint', 'air')
+                    $stepResults.Add((New-StepResult -Phase 'Developer' -Action 'scoop-install' -Status 'Completed' -Items @('golangci-lint', 'air') -Reason ("installed=$($scoopResult.Installed -join ', '); skipped=$($scoopResult.Skipped -join ', ')"))) | Out-Null
                     Install-GoTools
+                    $stepResults.Add((New-StepResult -Phase 'Developer' -Action 'go-install' -Status 'Completed' -Items @('gopls', 'dlv', 'air'))) | Out-Null
                     Install-PowerShellDeveloperModules
+                    $stepResults.Add((New-StepResult -Phase 'Developer' -Action 'powershell-modules' -Status 'Completed' -Items @('Pester', 'PSScriptAnalyzer', 'Microsoft.PowerShell.PSResourceGet'))) | Out-Null
                 }
             }
             'NativeBuild' {
@@ -330,10 +448,12 @@ function Invoke-Apply {
                         & winget install --id Microsoft.VisualStudio.2022.BuildTools --source winget --accept-package-agreements --accept-source-agreements --disable-interactivity --override '--wait --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended'
                         if ($LASTEXITCODE -ne 0) { throw "Build Tools exited with $LASTEXITCODE" }
                     } | Out-Null
+                    $stepResults.Add((New-StepResult -Phase 'NativeBuild' -Action 'winget-install' -Status 'Completed' -Items @('Microsoft.VisualStudio.2022.BuildTools'))) | Out-Null
                     Invoke-LoggedCommand -Name 'visualstudio-locator' -ScriptBlock {
                         & winget install --id Microsoft.VisualStudio.Locator --source winget --accept-package-agreements --accept-source-agreements --disable-interactivity
                         if ($LASTEXITCODE -ne 0) { throw "vswhere package exited with $LASTEXITCODE" }
                     } | Out-Null
+                    $stepResults.Add((New-StepResult -Phase 'NativeBuild' -Action 'winget-install' -Status 'Completed' -Items @('Microsoft.VisualStudio.Locator'))) | Out-Null
                 }
             }
             'Containers' {
@@ -342,6 +462,7 @@ function Invoke-Apply {
                         & winget install --id Docker.DockerDesktop --source winget --accept-package-agreements --accept-source-agreements --disable-interactivity
                         if ($LASTEXITCODE -ne 0) { throw "Docker Desktop exited with $LASTEXITCODE" }
                     } | Out-Null
+                    $stepResults.Add((New-StepResult -Phase 'Containers' -Action 'winget-install' -Status 'Completed' -Items @('Docker.DockerDesktop'))) | Out-Null
                 }
             }
         }
@@ -349,10 +470,16 @@ function Invoke-Apply {
     }
 
     if ($Full -or $EnableSafetyHooks) {
-        $results.Add((Invoke-Phase 'SafetyHooks' { Install-SafetyHooks }))
+        $results.Add((Invoke-Phase 'SafetyHooks' {
+                    Install-SafetyHooks
+                    $stepResults.Add((New-StepResult -Phase 'SafetyHooks' -Action 'install-safety-hooks' -Status 'Completed' -Target (Join-Path $env:USERPROFILE '.config\pwsh-ai\hooks\dangerous-git.ps1'))) | Out-Null
+                }))
     }
 
-    return @($results)
+    return [pscustomobject]@{
+        Phases = @($results)
+        Steps  = @($stepResults)
+    }
 }
 
 
@@ -413,14 +540,30 @@ $mode = if ($Status) { 'Status' } elseif ($Verify) { 'Verify' } elseif ($Rollbac
 
 if ($Status) {
     $preflight = Invoke-WorkbenchPreflight -SkipWingetTest -SkipWingetDocuments
+    $selectedPhaseNames = @(Get-SelectedPhaseNames)
+    $impact = Get-ImpactSummary -Actions $plan -SelectedPhaseNames $selectedPhaseNames
+    $phaseStatuses = @($phaseDefinitions | ForEach-Object { Get-PhaseStatus $_.Name })
+    $summaryLines = @(
+        'Mode: Status'
+        "StateRoot: $stateRoot"
+        "Selected plan: $($selectedPhaseNames -join ', ')"
+        'Phase completion:'
+    )
+    foreach ($phase in $phaseStatuses) {
+        $summaryLines += "  - $($phase.Name): $($phase.Status)"
+    }
     $report = [ordered]@{
         Mode      = 'Status'
         Changed   = $false
         StateRoot = $stateRoot
-        Phases    = @($phaseDefinitions | ForEach-Object { Get-PhaseStatus $_.Name })
+        Selected  = @($selectedPhaseNames)
+        Phases    = $phaseStatuses
         Actions   = $plan
+        Impact    = $impact
+        Summary   = @($summaryLines)
         Preflight = $preflight.Report
     }
+    Write-HumanSummary -Lines $summaryLines
     if ($Json) { $report | ConvertTo-Json -Depth 12 } else { $report | Format-List }
     return
 }
@@ -429,8 +572,14 @@ if ($WhatIfPreference) {
     $selectedPhaseNames = @(Get-SelectedPhaseNames)
     $phaseStatuses = foreach ($phaseDef in $phaseDefinitions) {
         $phaseStatus = if ($selectedPhaseNames -contains $phaseDef.Name) { 'Planned' } else { 'NotSelected' }
-        [pscustomobject]@{ Name = $phaseDef.Name; Status = $phaseStatus }
+        [pscustomobject]@{
+            Name        = $phaseDef.Name
+            Status      = $phaseStatus
+            Description = $phaseDef.Description
+        }
     }
+    $impact = Get-ImpactSummary -Actions $plan -SelectedPhaseNames $selectedPhaseNames
+    $summaryLines = Get-ResultSummary -Mode 'WhatIf' -Impact $impact -Changed:$false
     $report = [ordered]@{
         Mode        = 'WhatIf'
         Changed     = $false
@@ -438,8 +587,11 @@ if ($WhatIfPreference) {
         Selected    = @($selectedPhaseNames)
         Phases      = @($phaseStatuses)
         Actions     = $plan
+        Impact      = $impact
+        Summary     = @($summaryLines)
         SafetyHooks = [bool]($EnableSafetyHooks -or $Full)
     }
+    Write-HumanSummary -Lines $summaryLines
     if ($Json) { $report | ConvertTo-Json -Depth 12 } else { $report | Format-List }
     return
 }
@@ -502,14 +654,16 @@ if ($preflight.ExitCode -ne 0) {
     exit 1
 }
 
-$results = Invoke-Apply
+$applyOutcome = Invoke-Apply
+$results = @($applyOutcome.Phases)
+$stepResults = @($applyOutcome.Steps)
 
 # Auto-run smoke verification after successful apply (explicit -Verify remains available).
 $testScript = Join-Path $PSScriptRoot 'Test-PwshAgentEnv.ps1'
 $postVerify = $null
 $postVerifyFailed = $false
 if (Test-Path -LiteralPath $testScript) {
-    Write-ProgressLine 'Running post-apply smoke verification...'
+    Write-ProgressLine 'Running post-apply smoke verification...' -Level STEP
     if (Test-Path -LiteralPath $refreshPath) { . $refreshPath | Out-Null }
     $rawVerify = & pwsh -NoLogo -NoProfile -File $testScript -Deep -Json 2>&1
     $verifyText = ($rawVerify | ForEach-Object { "$_" }) -join "`n"
@@ -518,24 +672,47 @@ if (Test-Path -LiteralPath $testScript) {
         $postVerify = $verifyText.Substring($vs, $ve - $vs + 1) | ConvertFrom-Json
         if ($postVerify.Summary.RequiredMissing -gt 0 -or $postVerify.Summary.RuntimeFailures -gt 0) {
             $postVerifyFailed = $true
+            Write-ProgressLine 'Post-apply verification reported failures.' -Level WARN
+        } else {
+            Write-ProgressLine 'Post-apply verification passed.' -Level OK
         }
     } else {
         $postVerifyFailed = $true
         $postVerify = [pscustomobject]@{ Error = 'Post-apply verification did not return JSON.'; Raw = $verifyText }
+        Write-ProgressLine 'Post-apply verification did not return JSON.' -Level ERROR
     }
 }
 
+$selectedPhaseNames = @(Get-SelectedPhaseNames)
+$impact = Get-ImpactSummary -Actions $plan -SelectedPhaseNames $selectedPhaseNames
+$summaryLines = Get-ResultSummary -Mode $mode -Impact $impact -PhaseResults $results -StepResults $stepResults -PostApplyVerification $postVerify -Changed:$true
+
 $report = [ordered]@{
-    Mode                   = $mode
-    Changed                = $true
-    StateRoot              = $stateRoot
-    Phases                 = $results
-    Actions                = $plan
-    Preflight              = $preflight.Report
-    PostApplyVerification  = $postVerify
+    Mode                  = $mode
+    Changed               = $true
+    StateRoot             = $stateRoot
+    Selected              = @($selectedPhaseNames)
+    Phases                = $results
+    Steps                 = $stepResults
+    Actions               = $plan
+    Impact                = $impact
+    Summary               = @($summaryLines)
+    Preflight             = $preflight.Report
+    PostApplyVerification = $postVerify
 }
-if ($Json) { $report | ConvertTo-Json -Depth 12 } else {
+
+Write-HumanSummary -Lines $summaryLines
+if ($Json) {
+    $report | ConvertTo-Json -Depth 12
+} else {
     $results | Format-Table -AutoSize
-    if ($postVerify) { 'Post-apply verification'; $postVerify.Summary | Format-List }
+    if ($stepResults) {
+        'Step results:'
+        $stepResults | Format-Table -AutoSize
+    }
+    if ($postVerify) {
+        'Post-apply verification'
+        $postVerify.Summary | Format-List
+    }
 }
 if ($postVerifyFailed) { exit 1 }

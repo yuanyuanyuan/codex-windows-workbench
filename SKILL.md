@@ -44,7 +44,15 @@ Default call should feel like:
 4. Automatic post-apply smoke verification
 5. Optional `-Status` / `-Verify` / `-Rollback`
 
-Report phase results and whether anything was `NotSelected`.
+When reporting to the user, prefer the human-readable `Summary` / `Impact` fields:
+
+- What will be installed (winget packages, scoop packages)
+- What managed files/directories will be written
+- What is NotSelected
+- What will NOT happen by default
+- After Apply: phase results, step results, and post-apply verification
+
+Do not only paste raw JSON. Lead with the summary so the user knows exactly what changed.
 
 ## Optional workloads
 

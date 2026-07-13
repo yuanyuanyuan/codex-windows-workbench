@@ -239,6 +239,8 @@ If your Codex CLI version does not support `plugin remove`, delete the installed
 }
 ```
 
+Preview/apply reports now include human-readable `Summary` and structured `Impact` so you can see packages, managed files, and non-actions without decoding raw JSON.
+
 How to read it:
 
 - trust `Selected` + `Actions`

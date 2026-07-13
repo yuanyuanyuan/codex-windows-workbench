@@ -558,6 +558,29 @@ Acceptance report template
 
 若 `Exists=True` 但 `SkillName` 还是旧名，优先判定为**本地安装残留**，不是 skill 运行时回归。
 
+
+### 坑 15：安装日志与结果可读性不足
+
+现象：
+
+- WhatIf/Apply 结果偏 JSON，用户不知道“到底会装什么”
+- 进度日志在 `-Json` 模式下几乎不可见
+- Agent 容易只贴原始 JSON，用户更不敢确认 Apply
+
+修复：
+
+1. 计划动作补充 `Description` / `Category` / `Items`
+2. 报告增加结构化 `Impact` 与人类可读 `Summary`
+3. 始终打印 `======== Workbench Summary ========`
+4. Apply 增加分步 `Steps`（installed/skipped/log path）
+5. 路径展示脱敏为 `%USERPROFILE%`
+6. `SKILL.md` 要求 Agent 先讲 Summary，再给细节
+
+经验：
+
+- 安全预览不只是 `Changed=false`，还要让用户读得懂影响面
+- 日志要同时服务机器解析（JSON）和人类确认（Summary）
+
 ## 结束语
 
 这次发布真正难的不是 PowerShell 脚本，而是把一个本地工作台工程，收成一个：

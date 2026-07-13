@@ -238,6 +238,8 @@ codex plugin remove stark-codex-windows-workbench@stark-codex-windows-workbench
 }
 ```
 
+预览/应用结果现在包含可读的 `Summary` 和结构化 `Impact`，不用啃原始 JSON 也能看清将安装的包、写入的托管文件，以及默认不会做什么。
+
 怎么读：
 
 - 以 `Selected` + `Actions` 为准
