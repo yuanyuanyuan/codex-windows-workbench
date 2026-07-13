@@ -1,4 +1,4 @@
-# Stark Stark Codex Windows Workbench — Installation Guide
+# Stark Codex Windows Workbench — Installation Guide
 
 ## For Humans
 
@@ -418,5 +418,6 @@ Skill 路径: <SkillRoot>
 - Contracts: [`references/contracts.md`](../references/contracts.md)
 
 - UAT real process notes: [docs/uat-real-install-configure.md](./uat-real-install-configure.md)
+
 
 
