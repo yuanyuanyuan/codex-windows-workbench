@@ -347,6 +347,11 @@ function Invoke-Apply {
         }
         $results.Add($result)
     }
+
+    if ($Full -or $EnableSafetyHooks) {
+        $results.Add((Invoke-Phase 'SafetyHooks' { Install-SafetyHooks }))
+    }
+
     return @($results)
 }
 
@@ -421,12 +426,19 @@ if ($Status) {
 }
 
 if ($WhatIfPreference) {
+    $selectedPhaseNames = @(Get-SelectedPhaseNames)
+    $phaseStatuses = foreach ($phaseDef in $phaseDefinitions) {
+        $phaseStatus = if ($selectedPhaseNames -contains $phaseDef.Name) { 'Planned' } else { 'NotSelected' }
+        [pscustomobject]@{ Name = $phaseDef.Name; Status = $phaseStatus }
+    }
     $report = [ordered]@{
-        Mode      = 'WhatIf'
-        Changed   = $false
-        StateRoot = $stateRoot
-        Phases    = @($phaseDefinitions | ForEach-Object { [pscustomobject]@{ Name = $_.Name; Status = 'Planned' } })
-        Actions   = $plan
+        Mode        = 'WhatIf'
+        Changed     = $false
+        StateRoot   = $stateRoot
+        Selected    = @($selectedPhaseNames)
+        Phases      = @($phaseStatuses)
+        Actions     = $plan
+        SafetyHooks = [bool]($EnableSafetyHooks -or $Full)
     }
     if ($Json) { $report | ConvertTo-Json -Depth 12 } else { $report | Format-List }
     return

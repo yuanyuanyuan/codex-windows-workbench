@@ -15,7 +15,7 @@ $script:PwshAiAgentPhaseDefinitions = @(
     [pscustomobject]@{
         Name        = 'AgentClients'
         Config      = $null
-        Description = 'Explicit agent CLI install/verify. Public MVP supports Codex only.'
+        Description = 'Verify public agent CLI presence. Public MVP checks Codex only; does not install or login.'
     }
     [pscustomobject]@{
         Name        = 'Developer'
@@ -51,13 +51,20 @@ function Add-Action {
         })
 }
 
-function Get-SelectedPhases {
+function Get-SelectedPhaseNames {
     # Default selection is Core + Agent only. All other workloads are explicit opt-in.
-    $selected = @('Core', 'Agent')
-    if ($Full -or $AgentClients) { $selected += 'AgentClients' }
-    if ($Full -or $Developer) { $selected += 'Developer' }
-    if ($Full -or $NativeBuild) { $selected += 'NativeBuild' }
-    if ($Full -or $Containers) { $selected += 'Containers' }
+    $selected = [System.Collections.Generic.List[string]]::new()
+    $selected.Add('Core') | Out-Null
+    $selected.Add('Agent') | Out-Null
+    if ($Full -or $AgentClients) { $selected.Add('AgentClients') | Out-Null }
+    if ($Full -or $Developer) { $selected.Add('Developer') | Out-Null }
+    if ($Full -or $NativeBuild) { $selected.Add('NativeBuild') | Out-Null }
+    if ($Full -or $Containers) { $selected.Add('Containers') | Out-Null }
+    return @($selected)
+}
+
+function Get-SelectedPhases {
+    $selected = @(Get-SelectedPhaseNames)
     return @($phaseDefinitions | Where-Object { $_.Name -in $selected })
 }
 
@@ -74,11 +81,10 @@ function Get-Plan {
             }
             'Agent' {
                 Add-Action $actions $phase.Name 'install-profile-overlay' (Join-Path $env:USERPROFILE '.config\pwsh-ai')
-                Add-Action $actions $phase.Name 'initialize-managed-agent-directories' '~\.config\pwsh-ai\hooks; ~\.config\pwsh-ai\mcp'
+                Add-Action $actions $phase.Name 'initialize-managed-agent-directories' (Join-Path $env:USERPROFILE '.config\pwsh-ai\hooks')
             }
             'AgentClients' {
-                Add-Action $actions $phase.Name 'install-agent-clients' (Join-Path $configRoot 'agent-clients.json')
-                Add-Action $actions $phase.Name 'verify-agent-clients' 'command/version only; never write auth or MCP secrets'
+                Add-Action $actions $phase.Name 'verify-agent-clients' 'command/version only; never install, login, or write auth/MCP secrets'
             }
             'Developer' {
                 Add-Action $actions $phase.Name 'scoop-install' 'golangci-lint air'
@@ -95,5 +101,11 @@ function Get-Plan {
             }
         }
     }
+
+    # Optional post-phase action; not a workload phase.
+    if ($Full -or $EnableSafetyHooks) {
+        Add-Action $actions 'SafetyHooks' 'install-safety-hooks' (Join-Path $env:USERPROFILE '.config\pwsh-ai\hooks\dangerous-git.ps1')
+    }
+
     return @($actions)
 }

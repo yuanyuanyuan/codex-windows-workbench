@@ -94,7 +94,7 @@ Assert-True -Condition ($entrySource -match 'Private\\PwshAiAgent\.State\.ps1' -
 Assert-True -Condition ($entrySource -match 'PowerShell 7 or newer is required') -Message 'Entry point must reject hosts older than PowerShell 7.'
 Assert-True -Condition ($entrySource -match '(?s)function\s+Invoke-Phase\s*\{\s*\[CmdletBinding\([^]]*SupportsShouldProcess\s*=\s*\$true') -Message 'Invoke-Phase must declare SupportsShouldProcess before calling $PSCmdlet.ShouldProcess.'
 Assert-True -Condition ($workbenchSource -notmatch '(?i)\bwsl\.exe\b|\bwsl\s+--|\bbash\s+-c\b|\bapt-get\b|\bbrew\s+install\b') -Message 'Workbench source must not invoke WSL/bash/Linux package managers.'
-Assert-True -Condition ($workbenchSource -match '\$selected\s*=\s*@\(\s*''Core''\s*,\s*''Agent''\s*\)' -or $workbenchSource -match "selected\s*=\s*@\('Core',\s*'Agent'\)") -Message 'Default selection must begin as Core + Agent.'
+Assert-True -Condition ($workbenchSource -match 'Get-SelectedPhaseNames' -and $workbenchSource -match "selected\.Add\('Core'\)" -and $workbenchSource -match "selected\.Add\('Agent'\)") -Message 'Default selection must begin as Core + Agent.'
 Assert-True -Condition ($envSource -match 'RequiredMissing' -and $envSource -match 'RecommendedMissing') -Message 'Env test must distinguish required vs recommended failures.'
 Assert-True -Condition ($envSource -match 'if \(\$missingRequired\.Count -gt 0\) \{ exit 1 \}') -Message 'Env test must exit non-zero only for required missing commands in the non-deep path.'
 Assert-True -Condition ($envSource -notmatch 'if \(\$missingRecommended\.Count -gt 0\) \{ exit 1 \}') -Message 'Env test must not fail the process solely because recommended commands are missing.'
@@ -145,6 +145,22 @@ try {
     }
     Assert-True -Condition (@($fullReport.Actions | Where-Object { $_.Action -match '(?i)WSL|bash|Linux|apt|brew' -or $_.Target -match '(?i)WSL|bash|Linux|apt|brew' }).Count -eq 0) -Message 'Full plan must contain zero WSL-like actions.'
     Assert-True -Condition (-not (Test-Path -LiteralPath $fullState)) -Message 'Full WhatIf must not create state.'
+
+    $notSelected = @($whatIfReport.Phases | Where-Object Status -eq 'NotSelected' | ForEach-Object Name)
+    foreach ($name in @('AgentClients', 'Developer', 'NativeBuild', 'Containers')) {
+        Assert-True -Condition ($notSelected -contains $name) -Message "Default WhatIf must mark $name as NotSelected."
+    }
+    $planned = @($whatIfReport.Phases | Where-Object Status -eq 'Planned' | ForEach-Object Name)
+    foreach ($name in @('Core', 'Agent')) {
+        Assert-True -Condition ($planned -contains $name) -Message "Default WhatIf must mark $name as Planned."
+    }
+    Assert-True -Condition ($whatIfReport.SafetyHooks -eq $false) -Message 'Default WhatIf must not enable SafetyHooks.'
+
+    $hooks = Invoke-Entry -StateRoot (Join-Path $tempRoot 'hooks-whatif') -ArgumentList @('-EnableSafetyHooks', '-WhatIf', '-Json')
+    Assert-Equal -Expected 0 -Actual $hooks.ExitCode -Message '-EnableSafetyHooks -WhatIf -Json must succeed.'
+    $hooksReport = ConvertFrom-JsonOutput -Output $hooks.Output
+    Assert-True -Condition ($hooksReport.SafetyHooks -eq $true) -Message '-EnableSafetyHooks WhatIf must report SafetyHooks=true.'
+    Assert-True -Condition (@($hooksReport.Actions | Where-Object Phase -eq 'SafetyHooks').Count -gt 0) -Message '-EnableSafetyHooks WhatIf plan must include SafetyHooks action.'
 
     # Status with isolated state root + sentinel contracts
     $statusState = Join-Path $tempRoot 'state-status'
@@ -238,3 +254,4 @@ finally {
 }
 
 'Initialize-PwshAgentWindows tests passed.'
+

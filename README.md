@@ -4,8 +4,42 @@
 
 **Skill:** `codex-windows-workbench`
 
-Native Windows PowerShell 7 workbench skill for Codex.  
-Default path: **Core + Agent**. No WSL.
+## Pain Points
+
+On native Windows, getting Codex ready for real engineering work is usually messy:
+
+- Agents fall back to WSL/bash/`apt` habits that do not belong on Windows
+- Setup is scattered across winget, scoop, PATH, profile, and random one-off scripts
+- You cannot safely preview what will change before packages land
+- Re-running setup is not idempotent; rollback is unclear
+- Auth/secrets get mixed into bootstrap docs and accidentally over-automated
+
+## What This Skill Solves
+
+`codex-windows-workbench` is a **native Windows PowerShell 7 workbench skill for Codex**.
+
+It gives agents one direct entrypoint to:
+
+1. Install the skill itself
+2. Preflight the machine
+3. Preview Core + Agent changes
+4. Apply a minimal managed baseline
+5. Verify / show status
+6. Roll back managed settings only
+
+Default path: **Core + Agent**. No WSL. No auth automation. No secret writes.
+
+## Before / After
+
+| | Before | After |
+|---|---|---|
+| Entry | Many ad-hoc scripts and chat instructions | Call `codex-windows-workbench` / `/codex-windows-workbench` |
+| Host model | WSL/bash leakage, mixed shells | Native Windows + PowerShell 7 only |
+| Change safety | Install first, discover impact later | `-WhatIf` preview, then explicit Apply |
+| Baseline | Inconsistent machine-specific tool soup | Managed Core + Agent default |
+| Secrets | Bootstrap docs tempt token/login automation | Never auto-login; never write MCP/secrets |
+| Recovery | Uninstall guesswork | Rollback managed settings only |
+| Repeatability | “Works on my machine” | Idempotent phases + status/verify |
 
 ## Install
 
@@ -18,8 +52,6 @@ Copy this to your Agent:
 Full agent install guide: [docs/install.md](./docs/install.md)
 
 ### RedSkill
-
-Copy this to your Agent:
 
 ```text
 现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 codex-windows-workbench 技能。若已安装，则直接安装 codex-windows-workbench 技能。
@@ -71,7 +103,7 @@ Optional explicit workloads:
 - `-Developer`
 - `-NativeBuild`
 - `-Containers`
-- `-AgentClients` (public MVP: Codex only)
+- `-AgentClients` (Codex presence/version probe only; does not install or login)
 - `-EnableSafetyHooks`
 - `-Full`
 
@@ -83,6 +115,8 @@ Optional explicit workloads:
 - No auth login automation
 - No secret / MCP credential writes
 - Rollback does not uninstall packages
+- Apply requires `winget`
+- Non-interactive Apply/Rollback should use `-Confirm:$false`
 
 ## Package
 

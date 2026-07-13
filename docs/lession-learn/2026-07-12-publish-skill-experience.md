@@ -207,3 +207,14 @@ git clone https://github.com/<owner>/<repo>.git %USERPROFILE%\.codex\skills\<ski
 - 文档主体写给 AI Agent：目标、边界、目录规则、分步命令、安全模式、失败处理、验收模板
 - README 中英都挂上 raw install.md 入口
 - 这样不依赖用户先读 README，也能让 Agent 按文档完成 skill 安装与可选工作台配置
+
+## install.md 审查修复（2026-07-13）
+
+审查发现并修复：
+
+1. Apply/Rollback 文档补 `-Confirm:$false`，避免 High ConfirmImpact 卡住 Agent
+2. `-EnableSafetyHooks` 接入 Apply 与 WhatIf plan
+3. WhatIf `Phases` 改为 `Planned` / `NotSelected`，并输出 `Selected`
+4. `-AgentClients` 明确为 Codex 探测，不安装/不登录
+5. 文档披露 Core 真实影响面与 winget 硬依赖
+6. README 顶部增加痛点、解决什么、Before/After

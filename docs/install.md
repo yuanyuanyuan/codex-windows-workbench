@@ -19,7 +19,7 @@
 
 ```text
 帮我安装 codex-windows-workbench 并配置默认工作台：https://raw.githubusercontent.com/yuanyuanyuan/codex-windows-workbench/master/docs/install.md
-先预览，确认后再 Apply Core + Agent。
+先预览，确认后再 Apply Core + Agent。使用 -Confirm:$false 执行。
 ```
 
 源仓库：
@@ -36,70 +36,82 @@ https://github.com/yuanyuanyuan/codex-windows-workbench
 
 Install the `codex-windows-workbench` skill, then optionally configure a native Windows PowerShell 7 Codex workbench.
 
-Default workbench path after skill install:
+Default path after skill install:
 
-1. Preflight
-2. Preview (`-WhatIf`)
-3. Ask user to confirm Apply
-4. Apply **Core + Agent only**
-5. Verify / Status
-6. Report results
+1. Resolve skill root
+2. Preflight
+3. Preview with `-WhatIf -Json` and read **`Actions` + `Selected`**
+4. Tell the user the real Core impact, then ask for Apply confirmation
+5. Apply **Core + Agent only** with `-Confirm:$false`
+6. Verify / Status
+7. Report results
 
 This skill maintains a Windows engineering workbench for Codex.  
-It is not an auth tool, marketplace installer, or multi-agent SDK.
+It is not an auth tool, cookie importer, marketplace installer, or multi-agent SDK.
+
+### Key definitions
+
+| Term | Meaning |
+|------|---------|
+| **Skill install** | Put `SKILL.md` + scripts into an agent skill directory |
+| **Workbench Apply** | Change the machine via managed Core/Agent phases |
+| **Core** | Baseline packages + CLI tools through winget/scoop |
+| **Agent** | Managed PowerShell overlay and agent directories under `%USERPROFILE%\.config\pwsh-ai` |
+| **AgentClients** | Verify whether public agent CLIs exist. Public MVP: **Codex probe only**. Does **not** install or login Codex |
+| **SafetyHooks** | Optional copy of managed git safety hook. Only with explicit `-EnableSafetyHooks` or `-Full` |
 
 ### Boundaries
 
-Stay within these limits:
-
-- **DO** install the skill into agent skill directories
-- **DO** run the skill scripts with PowerShell 7 (`pwsh`)
+- **DO** install the skill into user/agent skill directories
+- **DO** run scripts with PowerShell 7 (`pwsh`)
 - **DO** preview with `-WhatIf` before Apply when the user has not confirmed
+- **DO** use `-Confirm:$false` for non-interactive Apply / Rollback
 - **DO NOT** use Windows PowerShell 5.1
 - **DO NOT** use WSL, bash, apt, or brew
 - **DO NOT** auto-login Codex
 - **DO NOT** write tokens, MCP endpoints, secrets, cookies, or permission grants
-- **DO NOT** run package uninstall during rollback
-- **DO NOT** enable optional workloads (`-Developer`, `-NativeBuild`, `-Containers`, `-AgentClients`, `-EnableSafetyHooks`, `-Full`) unless the user explicitly asks
-- **DO NOT** use `sudo` / elevation unless the user explicitly approves
-- If elevated permissions or global environment changes are required, **tell the user** and wait
+- **DO NOT** enable optional workloads unless the user explicitly asks
+- **DO NOT** claim `-AgentClients` installs Codex; it only verifies presence/version
+- **DO NOT** use elevation / admin unless the user explicitly approves
+- If elevated permissions are required, **tell the user** and wait
 
 ### Directory Rules
 
-Keep skill files and managed workbench state out of the user's project workspace whenever possible.
+Prefer global/user skill dirs. Do not pollute the current project workspace.
 
-| Purpose | Directory | Example |
-|---------|-----------|---------|
-| Preferred skill install (skills CLI) | `~/.agents/skills/codex-windows-workbench/` | `SKILL.md` |
-| Codex manual skill path | `%USERPROFILE%\.codex\skills\codex-windows-workbench\` | `SKILL.md` |
-| Claude manual skill path | `%USERPROFILE%\.claude\skills\codex-windows-workbench\` | `SKILL.md` |
-| Managed workbench state | `%LOCALAPPDATA%\PwshAiAgent\state\` | sentinels, backups, logs |
-| Runtime scripts | `<skill-root>\scripts\` | `Initialize-PwshAgentWindows.ps1` |
-
-**Why?** Cloning or applying inside the user's current project pollutes the workspace. Prefer global/user skill directories.
+| Purpose | Directory |
+|---------|-----------|
+| Preferred skill install (`npx skills`) | `%USERPROFILE%\.agents\skills\codex-windows-workbench\` |
+| Codex manual skill path | `%USERPROFILE%\.codex\skills\codex-windows-workbench\` |
+| Claude manual skill path | `%USERPROFILE%\.claude\skills\codex-windows-workbench\` |
+| Managed workbench state | `%LOCALAPPDATA%\PwshAiAgent\state\` |
+| Managed agent overlay | `%USERPROFILE%\.config\pwsh-ai\` |
+| Runtime scripts | `<skill-root>\scripts\` |
 
 ### Host Preconditions
 
-Before install, verify:
-
 ```powershell
-pwsh -NoLogo -NoProfile -Command '$PSVersionTable.PSVersion.ToString(); $IsWindows'
+pwsh -NoLogo -NoProfile -Command '$PSVersionTable.PSVersion.ToString(); $IsWindows; Get-Command winget,npx,git -ErrorAction SilentlyContinue | Select-Object Name,Source'
 ```
 
-Required:
+Required for skill install:
 
 - Native Windows
 - PowerShell 7+
-- Network access for skill download / package install
-- Prefer an existing `winget` for workbench Apply
+- Network access
 
-If PowerShell 7 is missing, stop and tell the user to install PowerShell 7 first. Do not fall back to 5.1.
+Required for workbench **Apply**:
+
+- `winget` available
+- User consent for package install / possible elevation
+
+If PowerShell 7 is missing, stop. Do not fall back to 5.1.
 
 ---
 
 ### Step 1: Install the skill
 
-Choose the first method that works in the current host. Prefer **npx**.
+Choose the first method that works. Prefer **npx**.
 
 #### Option A — npx (Recommended)
 
@@ -107,21 +119,19 @@ Choose the first method that works in the current host. Prefer **npx**.
 npx --yes skills add yuanyuanyuan/codex-windows-workbench -g -y -s codex-windows-workbench
 ```
 
-If the host only needs Codex:
+Codex-only host:
 
 ```powershell
 npx --yes skills add yuanyuanyuan/codex-windows-workbench -g -y -s codex-windows-workbench -a codex
 ```
 
-Expected install root:
+Expected path:
 
 ```text
 %USERPROFILE%\.agents\skills\codex-windows-workbench
 ```
 
 #### Option B — RedSkill
-
-If the user is on RedSkill / asks for RedSkill, follow this install wording:
 
 ```text
 现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 codex-windows-workbench 技能。若已安装，则直接安装 codex-windows-workbench 技能。
@@ -134,163 +144,175 @@ If the user is on RedSkill / asks for RedSkill, follow this install wording:
 /plugin install codex-windows-workbench@codex-windows-workbench
 ```
 
+After plugin install, locate the installed plugin/skill files on disk. If they are not under the candidate paths below, search for `SKILL.md` whose frontmatter name is `codex-windows-workbench`.
+
 #### Option D — Manual Git Clone
 
 ```powershell
-# Codex
 git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git $env:USERPROFILE\.codex\skills\codex-windows-workbench
-
-# Claude Code
+# or Claude:
 git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git $env:USERPROFILE\.claude\skills\codex-windows-workbench
 ```
 
 #### Resolve skill root
 
-After install, set `$SkillRoot` to the first existing path:
-
 ```powershell
 $candidates = @(
-  Join-Path $env:USERPROFILE '.agents\skills\codex-windows-workbench'
-  Join-Path $env:USERPROFILE '.codex\skills\codex-windows-workbench'
-  Join-Path $env:USERPROFILE '.claude\skills\codex-windows-workbench'
+  (Join-Path $env:USERPROFILE '.agents\skills\codex-windows-workbench')
+  (Join-Path $env:USERPROFILE '.codex\skills\codex-windows-workbench')
+  (Join-Path $env:USERPROFILE '.claude\skills\codex-windows-workbench')
 )
 $SkillRoot = $candidates | Where-Object { Test-Path (Join-Path $_ 'SKILL.md') } | Select-Object -First 1
+if (-not $SkillRoot) {
+  $hit = Get-ChildItem -Path (Join-Path $env:USERPROFILE '.codex'), (Join-Path $env:USERPROFILE '.agents'), (Join-Path $env:USERPROFILE '.claude') -Filter SKILL.md -Recurse -ErrorAction SilentlyContinue |
+    Where-Object { (Get-Content $_.FullName -TotalCount 5 -ErrorAction SilentlyContinue) -match 'codex-windows-workbench' } |
+    Select-Object -First 1
+  if ($hit) { $SkillRoot = $hit.Directory.FullName }
+}
 if (-not $SkillRoot) { throw 'codex-windows-workbench skill not found after install.' }
 $Init = Join-Path $SkillRoot 'scripts\Initialize-PwshAgentWindows.ps1'
 $Preflight = Join-Path $SkillRoot 'scripts\Preflight-PwshAgentWindows.ps1'
+Test-Path (Join-Path $SkillRoot 'SKILL.md'); Test-Path $Init; Test-Path $Preflight
 ```
 
-Verify skill files:
-
-```powershell
-Test-Path (Join-Path $SkillRoot 'SKILL.md')
-Test-Path $Init
-Test-Path $Preflight
-```
-
-If skill install succeeded and the user asked for **safe mode / skill only**, stop here and report:
-
-```text
-skill installed
-skill root: <path>
-next: codex-windows-workbench
-```
+If the user asked for **safe mode / skill only**, stop after skill install and report the path.
 
 ---
 
-### Step 2: Preflight the workbench
+### Step 2: Preflight
 
 ```powershell
 pwsh -NoLogo -NoProfile -File $Preflight -Json
 ```
 
-Interpret result:
-
-- blockers / `FAIL` → fix or ask user
-- warnings only → continue, report them
+- `FAIL` / blockers → fix or ask user; do not Apply
+- warnings only → continue and report
 - all OK → continue
 
-Do not Apply when preflight is blocked.
+Note: Apply also runs preflight internally and will fail closed if blocked.
 
 ---
 
-### Step 3: Preview default workbench plan
+### Step 3: Preview default plan
 
-Always preview first unless the user already explicitly confirmed Apply in the same request.
+Always preview first unless the user already confirmed Apply in the same request.
 
 ```powershell
 pwsh -NoLogo -NoProfile -File $Init -WhatIf -Json
 ```
 
-Then tell the user, in plain language:
+How to read the JSON:
 
-1. Skill is installed
-2. Default plan is **Core + Agent only**
-3. Optional workloads were not selected
-4. Ask whether to Apply now
+1. Prefer **`Selected`** and **`Actions`**
+2. `Phases[].Status`:
+   - `Planned` = selected
+   - `NotSelected` = not selected
+3. `SafetyHooks=false` by default
+4. Do **not** invent WSL/bash/apt/brew steps
 
-Suggested user prompt:
+Default selected phases:
+
+- `Core`
+- `Agent`
+
+Default Core impact to tell the user before Apply:
+
+- Uses **winget configure** for baseline packages (may require elevation for some packages)
+- Bootstraps **scoop** and installs common CLI tools (`ripgrep`, `fd`, `fzf`, `jq`, `bat`, `delta`, `yq`, `7zip`, `zip`, `nuget`)
+- Agent phase writes managed overlay/state under `%USERPROFILE%\.config\pwsh-ai` and `%LOCALAPPDATA%\PwshAiAgent\state`
+- Does **not** auto-login Codex
+- Does **not** write secrets/MCP credentials
+
+Suggested confirmation prompt:
 
 ```text
 预览完成。默认只会应用 Core + Agent。
+Core 可能通过 winget/scoop 安装基线工具，并可能需要提权。
+Agent 会写入托管 PowerShell overlay / 状态目录。
 要现在 Apply 吗？还是只要 skill / 只要预览？
-如果你还要 Developer / NativeBuild / Containers / AgentClients / SafetyHooks，请明确说。
+如需 Developer / NativeBuild / Containers / AgentClients(仅探测Codex) / SafetyHooks，请明确说。
 ```
 
 ---
 
 ### Step 4: Apply default workbench (only after confirmation)
 
-Default Apply:
-
 ```powershell
-pwsh -NoLogo -NoProfile -File $Init -Json
+pwsh -NoLogo -NoProfile -File $Init -Confirm:$false -Json
 ```
 
-Notes:
+Rules:
 
 - Default = Core + Agent only
-- May install packages through managed scripts / winget / scoop as implemented by the skill
-- Does **not** auto-login Codex
-- Does **not** write secrets
+- `-Confirm:$false` is required for unattended Apply because the script uses high-confirm ShouldProcess
+- `winget` is a hard requirement for Apply, not optional
+- Apply runs preflight first, then phases, then post-apply smoke verification
+- Still does not auto-login Codex or write secrets
 
-If the user asked only for skill install or safe mode, skip this step.
+Safe mode / skill only: skip this step.
 
 ---
 
 ### Step 5: Verify and report
+
+Apply already includes smoke verification. Still run explicit checks when reporting:
 
 ```powershell
 pwsh -NoLogo -NoProfile -File $Init -Verify -Json
 pwsh -NoLogo -NoProfile -File $Init -Status -Json
 ```
 
-Report to the user:
+Report:
 
-- skill install path
+- skill path
 - whether Apply ran
+- selected phases
 - verify/status summary
 - remaining warnings
-- how to invoke the skill next time
-
-Invocation after install:
+- next invocation:
 
 ```text
 codex-windows-workbench
-```
-
-```text
 /codex-windows-workbench
 ```
 
 ---
 
-### Optional workloads (explicit request only)
-
-Only when the user clearly asks:
+### Optional flags (explicit request only)
 
 ```powershell
-pwsh -NoLogo -NoProfile -File $Init -Developer -Json
-pwsh -NoLogo -NoProfile -File $Init -NativeBuild -Json
-pwsh -NoLogo -NoProfile -File $Init -Containers -Json
-pwsh -NoLogo -NoProfile -File $Init -AgentClients -Json
-pwsh -NoLogo -NoProfile -File $Init -EnableSafetyHooks -Json
-pwsh -NoLogo -NoProfile -File $Init -Full -Json
+# Developer tools
+pwsh -NoLogo -NoProfile -File $Init -Developer -Confirm:$false -Json
+
+# Native build toolchain
+pwsh -NoLogo -NoProfile -File $Init -NativeBuild -Confirm:$false -Json
+
+# Docker Desktop package only (no WSL backend setup)
+pwsh -NoLogo -NoProfile -File $Init -Containers -Confirm:$false -Json
+
+# Verify Codex CLI presence/version only; does NOT install or login
+pwsh -NoLogo -NoProfile -File $Init -AgentClients -Confirm:$false -Json
+
+# Install managed git safety hook
+pwsh -NoLogo -NoProfile -File $Init -EnableSafetyHooks -Confirm:$false -Json
+
+# All optional workloads + safety hooks
+pwsh -NoLogo -NoProfile -File $Init -Full -Confirm:$false -Json
 ```
 
-Public MVP note:
+Public MVP notes:
 
-- `-AgentClients` supports **Codex only**
-- Do not claim multi-agent client setup beyond Codex
+- `-AgentClients` = Codex probe only
+- If Codex is missing, tell the user to install/login manually; never automate auth
 
 ---
 
 ### Rollback
 
-Rollback restores managed settings/files only. It does **not** uninstall packages.
+Restores managed settings/files only. Does **not** uninstall packages.
 
 ```powershell
-pwsh -NoLogo -NoProfile -File $Init -Rollback -Json
+pwsh -NoLogo -NoProfile -File $Init -Rollback -Confirm:$false -Json
 ```
 
 Ask the user before rollback.
@@ -299,53 +321,51 @@ Ask the user before rollback.
 
 ### Safe Mode
 
-If the user says 安全模式 / safe mode / dry-run / 只安装 skill:
+Aliases: `安全模式` / `safe mode` / `dry-run` / `只安装 skill`
+
+Mapped behavior:
 
 1. Install skill only
-2. Run preflight if useful
-3. Run `-WhatIf`
+2. Optional preflight
+3. `-WhatIf -Json` preview
 4. Do **not** Apply
 5. Do **not** enable optional workloads
-6. Return the preview and wait
+6. Wait for user decision
+
+There is no `--safe` CLI flag. Safe mode is a procedure, not a switch.
 
 ---
 
 ### Failure Handling
 
-When something fails:
+1. Capture command + exit code
+2. Prefer `-Json`
+3. Sanitize secrets, usernames, proxy endpoints, absolute personal paths
+4. Retry only idempotent skill-supported steps
+5. If elevation / login / secrets are required, stop and ask
 
-1. Capture the command and exit code
-2. Prefer JSON output (`-Json`) for diagnosis
-3. Sanitize secrets, usernames, proxy endpoints, and absolute personal paths before showing logs
-4. Retry only idempotent install steps that the skill already supports
-5. If elevation, login, cookies, or secrets are required, stop and ask the user
-
-Common failures:
-
-| Symptom | What to do |
-|---------|------------|
-| PowerShell 5.1 only | Stop. Ask user to install PowerShell 7 |
-| Not Windows / WSL | Stop. This skill is native Windows only |
-| skill not found after install | Retry another install channel; verify `SKILL.md` path |
-| winget missing during Apply | Report blocker; do not invent bash/apt/brew fallback |
-| Codex not logged in | Expected. Tell user to login manually; never automate auth |
-| Verify failed after Apply | Run `-Status -Json`, report failed phases, ask before retry/`-Force` |
+| Symptom | Action |
+|---------|--------|
+| PowerShell 5.1 only | Stop; install PowerShell 7 |
+| Not Windows / WSL | Stop; native Windows only |
+| skill not found | Retry another install channel; search for `SKILL.md` |
+| winget missing on Apply | Report hard blocker; no bash/apt/brew fallback |
+| Confirm prompt / hung Apply | Rerun with `-Confirm:$false` |
+| Codex missing / not logged in | Expected for AgentClients probe; user must install/login manually |
+| Verify failed after Apply | Run `-Status -Json`; ask before `-Force` retry |
 
 ---
 
 ### Final Check
 
-Before finishing, confirm:
-
 1. `SKILL.md` exists under a user skill directory
-2. User knows how to call:
-   - `codex-windows-workbench`
-   - `/codex-windows-workbench`
-3. If Apply ran, `-Verify` / `-Status` was executed
-4. No secrets were written
-5. No optional workload was enabled silently
+2. User can call `codex-windows-workbench` / `/codex-windows-workbench`
+3. If Apply ran, verification was reported
+4. No secrets written
+5. No optional workload enabled silently
+6. No false claim that Codex was installed/logged in
 
-Success message template:
+Success template:
 
 ```text
 codex-windows-workbench 已安装。
@@ -366,10 +386,10 @@ Skill 路径: <SkillRoot>
 | Manual Codex clone | `git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git %USERPROFILE%\.codex\skills\codex-windows-workbench` |
 | Preflight | `pwsh -NoLogo -NoProfile -File .\scripts\Preflight-PwshAgentWindows.ps1 -Json` |
 | Preview | `pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -WhatIf -Json` |
-| Apply default | `pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Json` |
+| Apply default | `pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Confirm:$false -Json` |
 | Verify | `pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify -Json` |
 | Status | `pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Status -Json` |
-| Rollback | `pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Rollback -Json` |
+| Rollback | `pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Rollback -Confirm:$false -Json` |
 
 ## Related
 
