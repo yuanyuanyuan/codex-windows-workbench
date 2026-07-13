@@ -88,12 +88,12 @@ These names must match:
 - direct invocation names in docs
 
 ### G7. Docs channel gate
-Install docs must support:
+Install docs must support only the validated first-release channels:
 
-- RedSkill wording
 - `npx skills add` (recommended)
-- Codex Plugin CLI (`codex plugin ...`, not chat `/plugin`)
 - Manual clone/copy of the skill folder
+
+Do not advertise RedSkill or Codex Plugin CLI until each has install, invocation, and uninstall UAT evidence.
 
 ### G8. Contract suite gate
 Existing no-network contract tests must still pass.

@@ -1,0 +1,6 @@
+{
+  "scoopBootstrap": {
+    "source": "https://raw.githubusercontent.com/ScoopInstaller/Install/b0ee913725139b816f9178163af0aecdba07a7ed/install.ps1",
+    "sha256": "48F6EA398B3A3FA26FAE0093D37BD85B13E7EAA5D1D4A3E208408768408E35AE"
+  }
+}

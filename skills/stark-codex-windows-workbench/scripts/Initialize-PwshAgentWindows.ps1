@@ -150,9 +150,22 @@ function Install-Scoop {
         return [pscustomobject]@{ Status = 'Skipped'; Reason = 'scoop already available'; Items = @('scoop') }
     }
     $download = Join-Path ([System.IO.Path]::GetTempPath()) "install-scoop-$([guid]::NewGuid().ToString('N')).ps1"
+    $artifactManifestPath = Join-Path $configRoot 'external-artifacts.json'
     try {
+        if (-not (Test-Path -LiteralPath $artifactManifestPath)) {
+            throw "External artifact manifest not found: $artifactManifestPath"
+        }
+        $artifactManifest = Get-Content -LiteralPath $artifactManifestPath -Raw | ConvertFrom-Json
+        $scoopBootstrap = $artifactManifest.scoopBootstrap
+        if (-not $scoopBootstrap -or [string]::IsNullOrWhiteSpace($scoopBootstrap.source) -or $scoopBootstrap.sha256 -notmatch '^[A-Fa-f0-9]{64}$') {
+            throw 'Scoop bootstrap artifact must have a pinned source and SHA-256.'
+        }
         Write-ProgressLine 'Bootstrapping Scoop package manager...' -Level STEP
-        Invoke-WebRequest -Uri 'https://get.scoop.sh' -OutFile $download -UseBasicParsing
+        Invoke-WebRequest -Uri $scoopBootstrap.source -OutFile $download -UseBasicParsing
+        $actualHash = (Get-FileHash -LiteralPath $download -Algorithm SHA256).Hash
+        if ($actualHash -ne $scoopBootstrap.sha256.ToUpperInvariant()) {
+            throw "Scoop bootstrap SHA-256 mismatch. Expected $($scoopBootstrap.sha256), got $actualHash."
+        }
         Invoke-LoggedCommand -Name 'scoop-bootstrap' -ScriptBlock {
             & pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File $download
             if ($LASTEXITCODE -ne 0) { throw "scoop bootstrap exited with $LASTEXITCODE" }
@@ -167,7 +180,7 @@ function Install-Scoop {
         throw 'Scoop bootstrap completed but scoop is still unavailable.'
     }
     Write-ProgressLine 'Scoop bootstrap complete.' -Level OK
-    return [pscustomobject]@{ Status = 'Installed'; Reason = 'bootstrapped scoop'; Items = @('scoop') }
+    return [pscustomobject]@{ Status = 'Installed'; Reason = 'bootstrapped scoop from pinned artifact'; Items = @('scoop') }
 }
 
 function Install-ScoopPackageList {

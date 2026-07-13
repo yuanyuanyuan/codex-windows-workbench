@@ -79,18 +79,10 @@
 ### 给 Agent 的一句话
 
 ```text
-帮我安装 stark-codex-windows-workbench：https://raw.githubusercontent.com/yuanyuanyuan/stark-codex-windows-workbench/master/docs/install.md
+帮我安装 stark-codex-windows-workbench，使用 v0.1.1 的安装指南：https://github.com/yuanyuanyuan/stark-codex-windows-workbench/blob/v0.1.1/docs/install.md
 ```
 
 完整 Agent 安装文档：[docs/install.md](./docs/install.md)
-
-### RedSkill
-
-RedSkill 安装话术面向中文市场，请原样使用：
-
-```text
-现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 stark-codex-windows-workbench 技能。若已安装，则直接安装 stark-codex-windows-workbench 技能。
-```
 
 ### npx（推荐）
 
@@ -98,21 +90,12 @@ RedSkill 安装话术面向中文市场，请原样使用：
 npx skills add yuanyuanyuan/stark-codex-windows-workbench
 ```
 
-### Codex Plugin CLI
-
-在终端使用 Codex CLI。这不是聊天里的 `/plugin` 斜杠命令。
-
-```bash
-codex plugin marketplace add yuanyuanyuan/stark-codex-windows-workbench
-codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench
-```
-
 ### 手动安装（Git Clone）
 
 `npx skills` 安装的是 `skills/stark-codex-windows-workbench/` 这个 skill 目录，不是整个仓库根目录。
 
 ```powershell
-git clone --depth 1 https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:TEMP\stark-codex-windows-workbench
+git clone --depth 1 --branch v0.1.1 https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:TEMP\stark-codex-windows-workbench
 Copy-Item -Recurse -Force $env:TEMP\stark-codex-windows-workbench\skills\stark-codex-windows-workbench $env:USERPROFILE\.codex\skills\stark-codex-windows-workbench
 ```
 
@@ -167,14 +150,6 @@ $paths | Where-Object { Test-Path $_ } | ForEach-Object {
   Write-Host "Removed $_"
 }
 ```
-
-### 3) 可选：移除 Codex plugin 条目
-
-```bash
-codex plugin remove stark-codex-windows-workbench@stark-codex-windows-workbench
-```
-
-若当前 Codex CLI 版本不支持 `plugin remove`，手动删除已安装 plugin 目录，并在 Codex 配置里去掉对应 marketplace 条目。
 
 ### 卸载不会做什么
 

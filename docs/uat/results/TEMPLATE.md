@@ -1,12 +1,21 @@
 # UAT Result Template
 
 - Date:
-- Commit:
+- Tested source commit:
 - Operator:
 - Host: Windows + PowerShell
+- Starting managed state:
 - Command:
 - Tier: A / A+B / A+B+C
 - Overall: PASS / FAIL
+
+## Release-only evidence
+
+- Current host: PASS / FAIL
+- Fresh-machine coverage: NOT RUN / PASS / FAIL
+- Upgrade: PASS / FAIL
+- Redaction review: PASS / FAIL
+- Limitations:
 
 ## Case results
 

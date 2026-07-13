@@ -96,6 +96,10 @@ _Avoid_: Global user environment variable, system network policy
 Native Windows PowerShell 7, the only shell host permitted to execute Workbench commands.
 _Avoid_: Windows PowerShell 5.1, WSL, bash compatibility layer
 
+**Host Prerequisite Bootstrapper**:
+A narrowly scoped PowerShell 5.1-compatible entry point that establishes a Supported Workbench Host before handing control to the Workbench.
+_Avoid_: Workbench runtime, package-manager replacement
+
 **Installation Consent**:
 The user's explicit approval of the displayed package sources, packages, elevation impact, and applicable package agreements for one Workbench run.
 _Avoid_: Silent agreement acceptance, inferred license consent
@@ -108,6 +112,10 @@ _Avoid_: Raw installation log, environment dump
 The publishable Workbench Source Repository whose tracked contents are portable, non-secret, and safe for public distribution.
 _Avoid_: Personal workstation archive, environment backup
 
+**Immutable Release Reference**:
+A version tag or commit identifier that fixes the exact Workbench source a public user installs or executes.
+_Avoid_: Default branch URL, moving release target
+
 ## Relationships
 
 - A **Workbench Skill** maintains one **Windows AI Agent Workbench**.
@@ -115,6 +123,8 @@ _Avoid_: Personal workstation archive, environment backup
 - A **Portable Workbench Distribution** is a self-contained **Workbench Template** that excludes **Managed Workbench State** tied to an individual user.
 - A **Workbench Source Repository** distributes the **Workbench Skill** and **Portable Workbench Distribution** together.
 - A **Windows AI Agent Workbench** can manage **User-Supplied Proxy Configuration** only after the user provides it explicitly.
+- A **Host Prerequisite Bootstrapper** establishes a **Supported Workbench Host** before a **Workbench Skill** runs Workbench commands.
+- A **Public Release Repository** distributes a public version through an **Immutable Release Reference**.
 - A **Configuration Wizard** collects optional **User-Supplied Proxy Configuration** for a **Windows AI Agent Workbench**.
 - A **Non-Interactive Workbench Run** bypasses the **Configuration Wizard**.
 - A **Codex Workbench MVP** is a **Windows AI Agent Workbench** with Codex Agent as its sole supported client.

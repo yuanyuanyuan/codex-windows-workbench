@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.1 - 2026-07-13
+
+### Release governance
+
+- Publish immutable tags and GitHub Releases only through the Release workflow.
+- Require current-host, upgrade, Tier B, and redaction evidence before release.
+- Pin and verify the Scoop bootstrap artifact before execution.
+- Restrict documented install channels to `npx skills` and manual clone/copy.
+
 ## 0.1.0 - 2026-07-13
 
 First public release of `stark-codex-windows-workbench`.

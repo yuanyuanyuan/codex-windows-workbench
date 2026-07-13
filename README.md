@@ -79,18 +79,10 @@ call skill
 ### One-line for agents
 
 ```text
-Install stark-codex-windows-workbench for me using https://raw.githubusercontent.com/yuanyuanyuan/stark-codex-windows-workbench/master/docs/install.md
+Install stark-codex-windows-workbench for me using the installation guide for release v0.1.1: https://github.com/yuanyuanyuan/stark-codex-windows-workbench/blob/v0.1.1/docs/install.md
 ```
 
 Full agent install guide: [docs/install.md](./docs/install.md)
-
-### RedSkill
-
-RedSkill install wording is Chinese-market specific. Use this exact text with a RedSkill-capable agent:
-
-```text
-现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 stark-codex-windows-workbench 技能。若已安装，则直接安装 stark-codex-windows-workbench 技能。
-```
 
 ### npx (Recommended)
 
@@ -98,21 +90,12 @@ RedSkill install wording is Chinese-market specific. Use this exact text with a 
 npx skills add yuanyuanyuan/stark-codex-windows-workbench
 ```
 
-### Codex Plugin CLI
-
-Use the Codex CLI in a terminal. This is **not** a chat `/plugin` slash command.
-
-```bash
-codex plugin marketplace add yuanyuanyuan/stark-codex-windows-workbench
-codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench
-```
-
 ### Manual (Git Clone)
 
 `npx skills` installs the skill folder under `skills/stark-codex-windows-workbench/` (not the whole repo root).
 
 ```powershell
-git clone --depth 1 https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:TEMP\stark-codex-windows-workbench
+git clone --depth 1 --branch v0.1.1 https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:TEMP\stark-codex-windows-workbench
 Copy-Item -Recurse -Force $env:TEMP\stark-codex-windows-workbench\skills\stark-codex-windows-workbench $env:USERPROFILE\.codex\skills\stark-codex-windows-workbench
 ```
 
@@ -166,14 +149,6 @@ $paths | Where-Object { Test-Path $_ } | ForEach-Object {
   Write-Host "Removed $_"
 }
 ```
-
-### 3) Optional: remove Codex plugin entry
-
-```bash
-codex plugin remove stark-codex-windows-workbench@stark-codex-windows-workbench
-```
-
-If your Codex CLI version does not support `plugin remove`, delete the installed plugin directory manually and remove the marketplace entry from Codex config.
 
 ### What uninstall does not do
 

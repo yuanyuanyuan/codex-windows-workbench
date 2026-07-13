@@ -140,24 +140,7 @@ Expected path:
 %USERPROFILE%\.agents\skills\stark-codex-windows-workbench
 ```
 
-#### Option B — RedSkill
-
-```text
-现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 stark-codex-windows-workbench 技能。若已安装，则直接安装 stark-codex-windows-workbench 技能。
-```
-
-#### Option C — Codex Plugin CLI
-
-
-Use the Codex CLI in a terminal. This is not a chat `/plugin` slash command.
-
-```bash
-codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench
-```
-
-After plugin install, locate the installed plugin/skill files on disk. If they are not under the candidate paths below, search for `SKILL.md` whose frontmatter name is `stark-codex-windows-workbench`.
-
-#### Option D — Manual Git Clone
+#### Option B — Manual Git Clone
 
 ```powershell
 ```
