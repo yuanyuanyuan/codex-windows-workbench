@@ -23,9 +23,10 @@ The release workflow must pass all of the following with no `continue-on-error` 
 
 1. PowerShell syntax parsing for every packaged script.
 2. `PSScriptAnalyzer` at Warning and Error severity.
-3. Tier A and Tier B UAT: `tests/uat/Invoke-UatRegression.ps1 -IncludeNetwork`.
-4. `tests/release/Test-ReleaseGate.ps1` for the requested version.
-5. A clean checkout must contain the prerequisite bootstrapper, the external-artifact integrity manifest, `SECURITY.md`, this rule file, and a versioned UAT evidence file.
+3. `tests/release/Test-ReleaseGate.ps1` for the requested version.
+4. A clean checkout must contain the Workbench entry script, the external-artifact integrity manifest, `SECURITY.md`, this rule file, and a versioned UAT evidence file.
+
+GitHub Actions must run only CI-safe checks. Tier A and Tier B UAT, including package installation and any configuration validation, run on the current release-candidate host before dispatch and are recorded in the versioned release evidence.
 
 ## Required Human Evidence
 

@@ -69,12 +69,6 @@ jobs:
         shell: pwsh
         run: pwsh -NoLogo -NoProfile -File .\tests\release\Test-ReleaseGate.ps1 -Version '${{ inputs.version }}' -RequireEvidence
 
-      - name: Run network UAT
-        shell: pwsh
-        env:
-          PWSH_AI_AGENT_SKIP_WINGET_PREFLIGHT: '1'
-        run: pwsh -NoLogo -NoProfile -File .\tests\uat\Invoke-UatRegression.ps1 -IncludeNetwork -Json
-
       - name: Create immutable tag and release
         shell: pwsh
         env:

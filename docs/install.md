@@ -127,6 +127,7 @@ Choose the first method that works. Prefer **npx**.
 #### Option A — npx (Recommended)
 
 ```powershell
+npx skills add yuanyuanyuan/stark-codex-windows-workbench
 ```
 
 Codex-only host:
@@ -143,6 +144,8 @@ Expected path:
 #### Option B — Manual Git Clone
 
 ```powershell
+git clone --depth 1 --branch v0.1.1 https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:TEMP\stark-codex-windows-workbench
+Copy-Item -Recurse -Force $env:TEMP\stark-codex-windows-workbench\skills\stark-codex-windows-workbench $env:USERPROFILE\.codex\skills\stark-codex-windows-workbench
 ```
 
 #### Resolve skill root
