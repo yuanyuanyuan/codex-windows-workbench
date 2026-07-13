@@ -65,7 +65,7 @@ if ($RequireEvidence) {
             throw "Release evidence is missing '$requiredText'."
         }
     }
-    $testedCommit = [regex]::Match($evidence, '(?m)^Tested source commit:\s*([A-Fa-f0-9]{40})\s*$')
+    $testedCommit = [regex]::Match($evidence, '(?m)^\s*(?:-\s*)?Tested source commit:\s*([A-Fa-f0-9]{40})\s*$')
     if (-not $testedCommit.Success) {
         throw 'Release evidence must contain a 40-character Tested source commit SHA.'
     }
