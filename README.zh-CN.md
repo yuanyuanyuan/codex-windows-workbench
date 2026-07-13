@@ -54,7 +54,7 @@
 
 | | Before | After |
 |---|---|---|
-| 入口 | 一堆临时脚本和聊天指令 | 直接调用 `stark-codex-windows-workbench` / `/stark-codex-windows-workbench` |
+| 入口 | 一堆临时脚本和聊天指令 | Codex 调用 `$stark-codex-windows-workbench`，Claude Code 调用 `/stark-codex-windows-workbench` |
 | 宿主模型 | WSL/bash 渗透、shell 混用 | 仅原生 Windows + PowerShell 7 |
 | 变更安全 | 先装再看影响 | 先 `-WhatIf` 预览，再显式 Apply |
 | 基线 | 机器各自为政 | 托管的 Core + Agent 默认路径 |
@@ -122,9 +122,13 @@ Copy-Item -Recurse -Force $env:TEMP\stark-codex-windows-workbench\skills\stark-c
 
 ## 使用
 
+Codex：
+
 ```text
-stark-codex-windows-workbench
+$stark-codex-windows-workbench
 ```
+
+Claude Code：
 
 ```text
 /stark-codex-windows-workbench
@@ -196,7 +200,7 @@ codex plugin remove stark-codex-windows-workbench@stark-codex-windows-workbench
 
 | 步骤 | 实际执行 | 对机器的影响 | 你能看到什么 |
 |------|----------|--------------|--------------|
-| 1. 调用 skill | `stark-codex-windows-workbench` / `/stark-codex-windows-workbench` | 还不动机器 | Agent 载入 skill 指令 |
+| 1. 调用 skill | `$stark-codex-windows-workbench`（Codex）或 `/stark-codex-windows-workbench`（Claude Code） | 还不动机器 | Agent 载入 skill 指令 |
 | 2. 预检 | `Preflight-PwshAgentWindows.ps1 -Json` | 只读检查 | 宿主/工具阻断项与警告 |
 | 3. 预览 | `Initialize-...ps1 -WhatIf -Json` | **不改动**（`Changed=false`） | `Selected`、`Phases`、`Actions`、`SafetyHooks` |
 | 4. 确认 | Agent 向你确认 | 不改动 | 清楚说明 Core + Agent 影响 |
@@ -311,3 +315,4 @@ docs/
 ## 许可证
 
 MIT — 见 [LICENSE](./LICENSE)。
+

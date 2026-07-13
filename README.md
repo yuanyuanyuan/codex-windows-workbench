@@ -54,7 +54,7 @@ This skill collapses those problems into one direct invocation path and hardens 
 
 | | Before | After |
 |---|---|---|
-| Entry | Many ad-hoc scripts and chat instructions | Call `stark-codex-windows-workbench` / `/stark-codex-windows-workbench` |
+| Entry | Many ad-hoc scripts and chat instructions | Call `$stark-codex-windows-workbench` (Codex) or `/stark-codex-windows-workbench` (Claude Code) |
 | Host model | WSL/bash leakage, mixed shells | Native Windows + PowerShell 7 only |
 | Change safety | Install first, discover impact later | `-WhatIf` preview, then explicit Apply |
 | Baseline | Machine-specific tool soup | Managed Core + Agent default |
@@ -122,9 +122,13 @@ Copy-Item -Recurse -Force $env:TEMP\stark-codex-windows-workbench\skills\stark-c
 
 ## Use
 
+Codex:
+
 ```text
-stark-codex-windows-workbench
+$stark-codex-windows-workbench
 ```
+
+Claude Code:
 
 ```text
 /stark-codex-windows-workbench
@@ -197,7 +201,7 @@ If your Codex CLI version does not support `plugin remove`, delete the installed
 
 | Step | What runs | Machine effect | What you see |
 |------|-----------|----------------|--------------|
-| 1. Call skill | `stark-codex-windows-workbench` / `/stark-codex-windows-workbench` | No machine change yet | Agent loads skill instructions |
+| 1. Call skill | `$stark-codex-windows-workbench` (Codex) or `/stark-codex-windows-workbench` (Claude Code) | No machine change yet | Agent loads skill instructions |
 | 2. Preflight | `Preflight-PwshAgentWindows.ps1 -Json` | Read-only checks | Host/tool blockers and warnings |
 | 3. Preview | `Initialize-...ps1 -WhatIf -Json` | **No changes** (`Changed=false`) | `Selected`, `Phases`, `Actions`, `SafetyHooks` |
 | 4. Confirm | Agent asks you | No changes | Clear Core + Agent impact summary |

@@ -28,8 +28,7 @@
     ],
     "websiteURL": "https://github.com/yuanyuanyuan/stark-codex-windows-workbench",
     "defaultPrompt": [
-      "stark-codex-windows-workbench"
+      "$stark-codex-windows-workbench"
     ]
   }
 }
-

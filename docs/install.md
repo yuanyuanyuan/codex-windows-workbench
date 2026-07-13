@@ -291,8 +291,8 @@ Report:
 - next invocation:
 
 ```text
-stark-codex-windows-workbench
-/stark-codex-windows-workbench
+$stark-codex-windows-workbench   # Codex
+/stark-codex-windows-workbench   # Claude Code
 ```
 
 ---
@@ -379,7 +379,7 @@ There is no `--safe` CLI flag. Safe mode is a procedure, not a switch.
 
 1. SKILL.md exists under a user skill directory
 2. scripts/Initialize-PwshAgentWindows.ps1 and config/ also exist under that same skill directory
-2. User can call `stark-codex-windows-workbench` / `/stark-codex-windows-workbench`
+2. User can call `$stark-codex-windows-workbench` (Codex) or `/stark-codex-windows-workbench` (Claude Code)
 3. If Apply ran, verification was reported
 4. No secrets written
 5. No optional workload enabled silently
@@ -392,7 +392,7 @@ stark-codex-windows-workbench 已安装。
 Skill 路径: <SkillRoot>
 工作台: <not applied | previewed | applied Core+Agent>
 验证: <pass/fail/skipped>
-以后直接调用: stark-codex-windows-workbench 或 /stark-codex-windows-workbench
+以后直接调用: $stark-codex-windows-workbench（Codex）或 /stark-codex-windows-workbench（Claude Code）
 ```
 
 ---

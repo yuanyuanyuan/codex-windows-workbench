@@ -42,8 +42,8 @@
 用户看到的调用入口只有：
 
 ```text
-stark-codex-windows-workbench
-/stark-codex-windows-workbench
+$stark-codex-windows-workbench   # Codex
+/stark-codex-windows-workbench   # Claude Code
 ```
 
 错误模式：
@@ -108,8 +108,8 @@ README 主角必须是 skill，并且按**价值优先**的阅读结构写：
 应写成：
 
 ```text
-stark-codex-windows-workbench
-/stark-codex-windows-workbench
+$stark-codex-windows-workbench   # Codex
+/stark-codex-windows-workbench   # Claude Code
 ```
 
 参数路由放在 skill 内部；README 不承担命令百科。
@@ -676,3 +676,4 @@ pwsh -NoLogo -NoProfile -File .\tests\uat\Invoke-UatRegression.ps1 -IncludeNetwo
 
 - 发现一次 false-pass，就永久加一条会抓住它的 UAT case
 - CI 默认跑 Tier A；真实装包 Apply 永不默认进 CI
+
