@@ -1,6 +1,6 @@
 # Stark Codex Windows Workbench
 
-> English README: [README.md](./README.md)
+> 英文 README（信息源）：[README.md](./README.md)
 
 **Skill：** `stark-codex-windows-workbench`
 
@@ -85,6 +85,8 @@
 完整 Agent 安装文档：[docs/install.md](./docs/install.md)
 
 ### RedSkill
+
+RedSkill 安装话术面向中文市场，请原样使用：
 
 ```text
 现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 stark-codex-windows-workbench 技能。若已安装，则直接安装 stark-codex-windows-workbench 技能。
@@ -309,4 +311,3 @@ docs/
 ## 许可证
 
 MIT — 见 [LICENSE](./LICENSE)。
-

@@ -1,54 +1,54 @@
 # Stark Codex Windows Workbench
 
-> 中文说明：[README.zh-CN.md](./README.zh-CN.md)
+> Chinese README: [README.zh-CN.md](./README.zh-CN.md)
 
 **Skill:** `stark-codex-windows-workbench`
 
-给 Codex 一条直接入口，在**原生 Windows + PowerShell 7** 上安全地预检、预览、应用、验证并回滚托管工作台。  
-默认路径：**Core + Agent**。不用 WSL。不自动登录。不写 secret。
+A direct entry point for Codex to safely preflight, preview, apply, verify, and roll back a managed workbench on **native Windows + PowerShell 7**.  
+Default path: **Core + Agent**. No WSL. No auto-login. No secret writes.
 
 ## What This Skill Is For
 
-`stark-codex-windows-workbench` 是面向 Codex 的 **原生 Windows PowerShell 7 workbench skill**。
+`stark-codex-windows-workbench` is a **native Windows PowerShell 7 workbench skill** for Codex.
 
-它用来做这些事：
+It is used to:
 
-1. 安装 skill 本身
-2. 预检机器是否可跑
-3. 用 `-WhatIf` 预览 Core + Agent 会改什么
-4. 显式 Apply 最小托管基线
-5. 验证 / 查看状态
-6. 仅回滚受管设置
+1. Install the skill itself
+2. Preflight whether the host can run
+3. Preview what Core + Agent will change with `-WhatIf`
+4. Explicitly Apply a minimal managed baseline
+5. Verify / inspect status
+6. Roll back managed settings only
 
-一句话：让 Agent 在 Windows 上有一套可重复、可预览、可回滚的工作台，而不是一堆临时脚本。
+In one sentence: give the agent a repeatable, previewable, rollback-friendly Windows workbench instead of a pile of ad-hoc scripts.
 
 ## What Problem It Solves
 
-在原生 Windows 上把 Codex 变成能做工程的状态，通常会踩这些坑：
+Turning Codex into an engineering-ready state on native Windows usually hits these pain points:
 
-- Agent 习惯性滑向 WSL / bash / `apt`，把 Windows 环境搞乱
-- 安装路径散落在 winget、scoop、PATH、Profile 和各种临时脚本里
-- 装包前没法安全预览“到底会改什么”
-- 重复执行不稳定，出问题也不知道怎么回滚
-- 安装文档夹杂登录/密钥步骤，容易被 Agent 过度自动化
+- Agents drift into WSL / bash / `apt` and mess up the Windows host
+- Install paths are scattered across winget, scoop, PATH, Profile, and temporary scripts
+- There is no safe preview of impact before packages are installed
+- Re-runs are unstable, and recovery is unclear when something breaks
+- Install docs mix login/secret steps and tempt agents into over-automation
 
-这个 skill 把它们收敛成一条直接调用入口，并把边界写死：
+This skill collapses those problems into one direct invocation path and hardens the boundaries:
 
-- 只走原生 Windows + PowerShell 7
-- 默认先预览，再确认 Apply
-- 默认只做 Core + Agent
-- 永不自动登录，不写 MCP/secret
-- 回滚只恢复受管设置，不卸载软件包
+- Native Windows + PowerShell 7 only
+- Preview first, Apply only after confirmation
+- Default path is Core + Agent only
+- Never auto-login, never write MCP/secrets
+- Rollback restores managed settings only; it does not uninstall packages
 
 ## Why Use It
 
-| 如果你现在是… | 这个 skill 让你变成… |
+| If you currently... | This skill helps you... |
 |---|---|
-| 靠聊天指令和零散脚本搭环境 | 直接调用 skill 完成预检/预览/应用/验证 |
-| 先装包再发现影响面 | 先 `-WhatIf`，确认后再 Apply |
-| Windows 上仍被 WSL/bash 带偏 | 固定原生 Windows + PowerShell 7 路径 |
-| 每台机器基线不一致 | 托管的 Core + Agent 默认路径 |
-| 出问题只能猜着卸载 | 明确回滚受管设置，卸载 skill 也有固定步骤 |
+| Bootstrap with chat prompts and scattered scripts | Call one skill for preflight / preview / apply / verify |
+| Install first and discover impact later | Preview with `-WhatIf`, then Apply after confirmation |
+| Still get pulled into WSL/bash on Windows | Stay on a fixed native Windows + PowerShell 7 path |
+| Keep inconsistent machine baselines | Use a managed Core + Agent default |
+| Recover by guessing uninstall steps | Roll back managed settings with fixed uninstall steps |
 
 ## User Scenario Comparison
 
@@ -60,7 +60,7 @@
 | Baseline | Machine-specific tool soup | Managed Core + Agent default |
 | Secrets | Bootstrap docs tempt token/login automation | Never auto-login; never write MCP/secrets |
 | Recovery | Uninstall guesswork | Rollback managed settings only |
-| Repeatability | “Works on my machine” | Idempotent phases + status/verify |
+| Repeatability | "Works on my machine" | Idempotent phases + status/verify |
 
 ### Typical flow after you call it
 
@@ -79,12 +79,14 @@ call skill
 ### One-line for agents
 
 ```text
-帮我安装 stark-codex-windows-workbench：https://raw.githubusercontent.com/yuanyuanyuan/stark-codex-windows-workbench/master/docs/install.md
+Install stark-codex-windows-workbench for me using https://raw.githubusercontent.com/yuanyuanyuan/stark-codex-windows-workbench/master/docs/install.md
 ```
 
 Full agent install guide: [docs/install.md](./docs/install.md)
 
 ### RedSkill
+
+RedSkill install wording is Chinese-market specific. Use this exact text with a RedSkill-capable agent:
 
 ```text
 现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 stark-codex-windows-workbench 技能。若已安装，则直接安装 stark-codex-windows-workbench 技能。
@@ -288,7 +290,7 @@ Observed on a native Windows host:
 One-command agent replay:
 
 ```text
-按 docs/install.md 安装 stark-codex-windows-workbench；先 npx 安装 skill，再执行 -WhatIf -Json 预览 Core+Agent，把 Selected/Actions 报告给我确认后，才允许 -Confirm:$false Apply，最后跑 -Status/-Verify。
+Install stark-codex-windows-workbench using docs/install.md. First install the skill with npx, then run -WhatIf -Json to preview Core+Agent, report Selected/Actions for confirmation, and only after I confirm run -Confirm:$false Apply, then -Status/-Verify.
 ```
 
 ## Package
@@ -310,4 +312,3 @@ docs/
 ## License
 
 MIT — see [LICENSE](./LICENSE).
-
