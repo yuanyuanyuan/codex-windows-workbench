@@ -29,8 +29,11 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           if (git status --porcelain) { throw 'Release source must be clean.' }
-          if ((git rev-parse --abbrev-ref HEAD) -ne 'master') { throw 'Release must run from master.' }
-          if (git ls-remote --exit-code --tags origin "refs/tags/v${{ inputs.version }}") { throw 'Release tag already exists.' }
+          $masterCommit = (git rev-parse origin/master).Trim()
+          if ($env:GITHUB_SHA -ne $masterCommit) { throw 'Release must run from the current master commit.' }
+          $tagRef = git ls-remote --tags origin "refs/tags/v${{ inputs.version }}"
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to check whether the release tag already exists.' }
+          if ($tagRef) { throw 'Release tag already exists.' }
 
       - name: Parse PowerShell
         shell: pwsh
