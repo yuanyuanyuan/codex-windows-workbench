@@ -308,6 +308,53 @@ git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git %USE
 git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git %USERPROFILE%\.claude\skills\stark-codex-windows-workbench
 ```
 
+## 卸载
+
+卸载只删除 skill 安装目录，**不会**卸载 Apply 装上的 winget/scoop 软件包。
+
+### 1) 可选：先回滚受管工作台设置
+
+```powershell
+pwsh -NoLogo -NoProfile -File "$env:USERPROFILE\.agents\skills\stark-codex-windows-workbench\scripts\Initialize-PwshAgentWindows.ps1" -Rollback -Confirm:$false -Json
+```
+
+如果 skill 只装在 Codex/Claude 目录，把上面的路径换成实际 skill 根目录。
+
+### 2) 删除 skill 目录
+
+```powershell
+$paths = @(
+  "$env:USERPROFILE\.agents\skills\stark-codex-windows-workbench"
+  "$env:USERPROFILE\.codex\skills\stark-codex-windows-workbench"
+  "$env:USERPROFILE\.claude\skills\stark-codex-windows-workbench"
+  # 历史旧名
+  "$env:USERPROFILE\.agents\skills\codex-windows-workbench"
+  "$env:USERPROFILE\.agents\skills\windows-pwsh-agent-workbench"
+  "$env:USERPROFILE\.codex\skills\codex-windows-workbench"
+  "$env:USERPROFILE\.claude\skills\codex-windows-workbench"
+)
+$paths | Where-Object { Test-Path $_ } | ForEach-Object {
+  Remove-Item -LiteralPath $_ -Recurse -Force
+  Write-Host "Removed $_"
+}
+```
+
+### 3) 可选：移除 Codex plugin 条目
+
+如果是通过 Codex Plugin CLI 安装的：
+
+```bash
+codex plugin remove stark-codex-windows-workbench@stark-codex-windows-workbench
+```
+
+若当前 Codex CLI 版本不支持 `plugin remove`，手动删除已安装 plugin 目录，并在 Codex 配置里去掉对应 marketplace 条目。
+
+### 卸载不会做什么
+
+- 不会卸载 Core 装过的软件包（`winget` / `scoop`）
+- 不会删除你无关的 PowerShell Profile 内容
+- 不会退出 Codex 登录
+
 ## 使用
 
 ```text

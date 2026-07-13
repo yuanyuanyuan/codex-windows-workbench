@@ -308,6 +308,53 @@ git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git %USE
 git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git %USERPROFILE%\.claude\skills\stark-codex-windows-workbench
 ```
 
+## Uninstall
+
+Uninstall removes the skill package from agent skill directories. It does **not** uninstall winget/scoop packages installed by Apply.
+
+### 1) Optional: rollback managed workbench settings first
+
+```powershell
+pwsh -NoLogo -NoProfile -File "$env:USERPROFILE\.agents\skills\stark-codex-windows-workbench\scripts\Initialize-PwshAgentWindows.ps1" -Rollback -Confirm:$false -Json
+```
+
+If the skill is only under Codex/Claude skill dirs, replace the path above with the installed skill root.
+
+### 2) Remove skill directories
+
+```powershell
+$paths = @(
+  "$env:USERPROFILE\.agents\skills\stark-codex-windows-workbench"
+  "$env:USERPROFILE\.codex\skills\stark-codex-windows-workbench"
+  "$env:USERPROFILE\.claude\skills\stark-codex-windows-workbench"
+  # legacy names from earlier renames
+  "$env:USERPROFILE\.agents\skills\codex-windows-workbench"
+  "$env:USERPROFILE\.agents\skills\windows-pwsh-agent-workbench"
+  "$env:USERPROFILE\.codex\skills\codex-windows-workbench"
+  "$env:USERPROFILE\.claude\skills\codex-windows-workbench"
+)
+$paths | Where-Object { Test-Path $_ } | ForEach-Object {
+  Remove-Item -LiteralPath $_ -Recurse -Force
+  Write-Host "Removed $_"
+}
+```
+
+### 3) Optional: remove Codex plugin entry
+
+If installed via Codex Plugin CLI:
+
+```bash
+codex plugin remove stark-codex-windows-workbench@stark-codex-windows-workbench
+```
+
+If your Codex CLI version does not support `plugin remove`, delete the installed plugin directory manually and remove the marketplace entry from Codex config.
+
+### What uninstall does not do
+
+- Does not uninstall packages installed by Core (`winget` / `scoop`)
+- Does not delete your unrelated PowerShell profile content
+- Does not log out of Codex
+
 ## Use
 
 ```text
