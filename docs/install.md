@@ -417,5 +417,5 @@ Skill 路径: <SkillRoot>
 - 中文 README: [`README.zh-CN.md`](../README.zh-CN.md)
 - Contracts: [`references/contracts.md`](../references/contracts.md)
 
-
+- UAT real process notes: [docs/uat-real-install-configure.md](./uat-real-install-configure.md)
 

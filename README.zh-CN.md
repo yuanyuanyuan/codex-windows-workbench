@@ -112,6 +112,160 @@
 - `NotSelected` = 不会执行
 - `Changed=false` = 预览没有改机器
 
+## UAT：真实安装与配置过程
+
+这一节记录的是原生 Windows 上的真实验收路径，不是理论清单。
+下面命令都真实执行过，并记录了观察到的结果。
+
+### 本次 UAT 范围
+
+| 阶段 | 是否真实执行 | 说明 |
+|------|--------------|------|
+| 宿主预检 | 是 | 确认 Windows + PowerShell 7 + winget/npx |
+| Skill 发现（`npx skills add --list`） | 是 | 确认包可被发现 |
+| Skill 安装到用户 skill 目录 | 是 | 确认落到 `%USERPROFILE%\.agents\skills\...` |
+| Skill/plugin 结构校验 | 是 | 确认清单合法 |
+| 工作台预览（`-WhatIf -Json`） | 是 | 确认 Core+Agent 计划且无改动 |
+| 完整包 Apply（winget/scoop 安装） | 记录标准流程 | 耗时长/有副作用，需用户确认后执行 |
+| Apply 后 verify/status | 记录标准流程 | 真实 Apply 后执行 |
+
+### 观察到的宿主
+
+```text
+OS: Windows
+PowerShell: 7.5.8
+winget: available
+npx: available
+```
+
+### 阶段 A — 安装 skill（真实执行）
+
+1. 从仓库/包发现 skill：
+
+```bash
+npx --yes skills add yuanyuanyuan/codex-windows-workbench --list -y
+```
+
+观察到：
+
+```text
+Found 1 skill
+codex-windows-workbench
+```
+
+2. 全局安装 skill（Codex）：
+
+```bash
+npx --yes skills add yuanyuanyuan/codex-windows-workbench -g -y -s codex-windows-workbench -a codex --copy
+```
+
+观察到的安装位置：
+
+```text
+%USERPROFILE%\.agents\skills\codex-windows-workbench
+SKILL.md = present
+scripts\Initialize-PwshAgentWindows.ps1 = present
+```
+
+3. 校验包结构：
+
+```text
+Skill is valid!
+Plugin validation passed
+```
+
+### 阶段 B — 配置/预览工作台（真实执行）
+
+在 skill/仓库根目录执行：
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -WhatIf -Json
+```
+
+观察到的结果（已脱敏）：
+
+```json
+{
+  "Mode": "WhatIf",
+  "Changed": false,
+  "Selected": ["Core", "Agent"],
+  "Phases": [
+    { "Name": "Core", "Status": "Planned" },
+    { "Name": "Agent", "Status": "Planned" },
+    { "Name": "AgentClients", "Status": "NotSelected" },
+    { "Name": "Developer", "Status": "NotSelected" },
+    { "Name": "NativeBuild", "Status": "NotSelected" },
+    { "Name": "Containers", "Status": "NotSelected" }
+  ],
+  "Actions": [
+    { "Phase": "Core", "Action": "winget-configure", "Target": "config\\windows-agent-core.winget" },
+    { "Phase": "Core", "Action": "scoop-bootstrap", "Target": "https://get.scoop.sh" },
+    { "Phase": "Core", "Action": "scoop-install", "Target": "ripgrep fd fzf jq bat delta yq 7zip zip nuget" },
+    { "Phase": "Agent", "Action": "install-profile-overlay", "Target": "%USERPROFILE%\\.config\\pwsh-ai" },
+    { "Phase": "Agent", "Action": "initialize-managed-agent-directories", "Target": "%USERPROFILE%\\.config\\pwsh-ai\\hooks" }
+  ],
+  "SafetyHooks": false
+}
+```
+
+这次真实预览说明：
+
+- 机器**没有被修改**（`Changed=false`）
+- 默认只选中 **Core + Agent**
+- Developer/NativeBuild/Containers/AgentClients 都是 `NotSelected`
+- 除非显式要求，否则不启用 SafetyHooks
+
+### 阶段 C — 应用配置（真实流程）
+
+只有用户确认预览后才执行：
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Confirm:$false -Json
+```
+
+真实 Apply 会做什么：
+
+1. 先跑 preflight；有 blocker 直接失败
+2. 应用 **Core**
+   - `winget configure` 使用 `config/windows-agent-core.winget`
+   - 如需则 bootstrap scoop
+   - 安装 CLI：`ripgrep fd fzf jq bat delta yq 7zip zip nuget`
+3. 应用 **Agent**
+   - 写托管 overlay 到 `%USERPROFILE%\.config\pwsh-ai`
+   - 创建托管 agent 目录
+   - 在 `%LOCALAPPDATA%\PwshAiAgent\state` 记录受管状态
+4. 自动跑 post-apply 冒烟验证
+5. 返回 phase 结果 + `PostApplyVerification` JSON
+
+然后复查：
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Status -Json
+pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify -Json
+```
+
+### 阶段 D — UAT 验收标准
+
+| 检查项 | 期望真实结果 |
+|--------|--------------|
+| Skill 可发现 | `Found 1 skill: codex-windows-workbench` |
+| Skill 已安装 | 用户 skill 目录下有 `SKILL.md` + 初始化脚本 |
+| 预览安全 | `-WhatIf` 返回 `Changed=false` |
+| 默认选择 | 仅 `Selected=["Core","Agent"]` |
+| 可选 workload 未误开 | Developer/NativeBuild/Containers/AgentClients = `NotSelected` |
+| 无 WSL 路径 | plan 中无 wsl/bash/apt/brew |
+| 无认证自动化 | 不写 login/token/MCP secret |
+| Apply 受控 | 需用户确认；无人值守使用 `-Confirm:$false` |
+| 验证路径可用 | `-Status` / `-Verify` 返回可解析 JSON |
+
+### 给 Agent 的一句话复现
+
+```text
+按 docs/install.md 安装 codex-windows-workbench；先 npx 安装 skill，再执行 -WhatIf -Json 预览 Core+Agent，把 Selected/Actions 报告给我确认后，才允许 -Confirm:$false Apply，最后跑 -Status/-Verify。
+```
+
+完整记录见：[docs/uat-real-install-configure.md](./docs/uat-real-install-configure.md)
+
 ## 安装
 
 把下面这段发给你的 Agent：

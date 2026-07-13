@@ -112,6 +112,160 @@ Read preview like this:
 - `NotSelected` means it will not run
 - `Changed=false` means preview did not modify the machine
 
+## UAT: Real Install And Configure Process
+
+This section records a real user-acceptance path on a native Windows host.
+It is not a theoretical checklist. Commands below were executed and observed.
+
+### Scope of this UAT
+
+| Stage | Executed for real? | Why |
+|-------|--------------------|-----|
+| Host precheck | Yes | Confirm Windows + PowerShell 7 + winget/npx |
+| Skill discovery (`npx skills add --list`) | Yes | Confirm package is discoverable |
+| Skill install to user skill dir | Yes | Confirm skill lands in `%USERPROFILE%\.agents\skills\...` |
+| Skill/plugin structure validation | Yes | Confirm package manifests are valid |
+| Workbench preview (`-WhatIf -Json`) | Yes | Confirm Core+Agent plan without mutation |
+| Full package Apply (winget/scoop install) | Documented procedure | Destructive/long-running; run only with user consent |
+| Post-apply verify/status | Documented procedure | Runs after real Apply |
+
+### Observed host
+
+```text
+OS: Windows
+PowerShell: 7.5.8
+winget: available
+npx: available
+```
+
+### Stage A — Install the skill (real)
+
+1. Discover skill from repo/package:
+
+```bash
+npx --yes skills add yuanyuanyuan/codex-windows-workbench --list -y
+```
+
+Observed:
+
+```text
+Found 1 skill
+codex-windows-workbench
+```
+
+2. Install skill globally for Codex:
+
+```bash
+npx --yes skills add yuanyuanyuan/codex-windows-workbench -g -y -s codex-windows-workbench -a codex --copy
+```
+
+Observed install target:
+
+```text
+%USERPROFILE%\.agents\skills\codex-windows-workbench
+SKILL.md = present
+scripts\Initialize-PwshAgentWindows.ps1 = present
+```
+
+3. Validate package structure:
+
+```text
+Skill is valid!
+Plugin validation passed
+```
+
+### Stage B — Configure/preview the workbench (real)
+
+From the skill/repo root:
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -WhatIf -Json
+```
+
+Observed result (sanitized):
+
+```json
+{
+  "Mode": "WhatIf",
+  "Changed": false,
+  "Selected": ["Core", "Agent"],
+  "Phases": [
+    { "Name": "Core", "Status": "Planned" },
+    { "Name": "Agent", "Status": "Planned" },
+    { "Name": "AgentClients", "Status": "NotSelected" },
+    { "Name": "Developer", "Status": "NotSelected" },
+    { "Name": "NativeBuild", "Status": "NotSelected" },
+    { "Name": "Containers", "Status": "NotSelected" }
+  ],
+  "Actions": [
+    { "Phase": "Core", "Action": "winget-configure", "Target": "config\\windows-agent-core.winget" },
+    { "Phase": "Core", "Action": "scoop-bootstrap", "Target": "https://get.scoop.sh" },
+    { "Phase": "Core", "Action": "scoop-install", "Target": "ripgrep fd fzf jq bat delta yq 7zip zip nuget" },
+    { "Phase": "Agent", "Action": "install-profile-overlay", "Target": "%USERPROFILE%\\.config\\pwsh-ai" },
+    { "Phase": "Agent", "Action": "initialize-managed-agent-directories", "Target": "%USERPROFILE%\\.config\\pwsh-ai\\hooks" }
+  ],
+  "SafetyHooks": false
+}
+```
+
+Interpretation of this real preview:
+
+- machine was **not** modified (`Changed=false`)
+- only **Core + Agent** are selected
+- Developer/NativeBuild/Containers/AgentClients are `NotSelected`
+- Safety hooks stay off unless explicitly requested
+
+### Stage C — Apply configuration (real procedure)
+
+Only after the user confirms the preview:
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Confirm:$false -Json
+```
+
+What this real Apply does:
+
+1. Runs preflight first; fails closed on blockers
+2. Applies **Core**
+   - `winget configure` with `config/windows-agent-core.winget`
+   - bootstraps scoop if needed
+   - installs CLI tools: `ripgrep fd fzf jq bat delta yq 7zip zip nuget`
+3. Applies **Agent**
+   - writes managed overlay under `%USERPROFILE%\.config\pwsh-ai`
+   - creates managed agent directories
+   - records managed state under `%LOCALAPPDATA%\PwshAiAgent\state`
+4. Auto-runs post-apply smoke verification
+5. Returns JSON with phase results + `PostApplyVerification`
+
+Then re-check:
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Status -Json
+pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify -Json
+```
+
+### Stage D — Acceptance criteria used in UAT
+
+| Check | Expected real result |
+|-------|----------------------|
+| Skill discoverable | `Found 1 skill: codex-windows-workbench` |
+| Skill installed | `SKILL.md` + `scripts/Initialize-...ps1` under user skill dir |
+| Preview safe | `-WhatIf` returns `Changed=false` |
+| Default selection | `Selected=["Core","Agent"]` only |
+| Optional workloads hidden | Developer/NativeBuild/Containers/AgentClients = `NotSelected` |
+| No WSL path | plan contains no wsl/bash/apt/brew actions |
+| No auth automation | no login/token/MCP secret writes |
+| Apply gated | requires explicit user confirm + `-Confirm:$false` for unattended run |
+| Verify path exists | `-Status` / `-Verify` return machine-readable JSON |
+
+### One-command UAT replay for agents
+
+```text
+按 docs/install.md 安装 codex-windows-workbench；先 npx 安装 skill，再执行 -WhatIf -Json 预览 Core+Agent，把 Selected/Actions 报告给我确认后，才允许 -Confirm:$false Apply，最后跑 -Status/-Verify。
+```
+
+Full raw notes: [docs/uat-real-install-configure.md](./docs/uat-real-install-configure.md)
+
 ## Install
 
 Copy this to your Agent:
