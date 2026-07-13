@@ -263,6 +263,16 @@ codex plugin remove stark-codex-windows-workbench@stark-codex-windows-workbench
 
 ## UAT 证据
 
+每次更新后必须跑回归 UAT：
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\tests\uat\Invoke-UatRegression.ps1
+```
+
+- 规则：[docs/uat/REGRESSION-RULES.md](./docs/uat/REGRESSION-RULES.md)
+- 用例：[docs/uat/cases/](./docs/uat/cases/)
+- 门禁会检查**安装后的 skill 产品目录完整性**，不只是源码树发现/WhatIf。
+
 真实安装与配置记录见：
 
 - [docs/uat-real-install-configure.md](./docs/uat-real-install-configure.md)
@@ -299,3 +309,4 @@ docs/
 ## 许可证
 
 MIT — 见 [LICENSE](./LICENSE)。
+

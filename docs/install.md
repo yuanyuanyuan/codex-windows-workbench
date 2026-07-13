@@ -422,3 +422,21 @@ Skill 路径: <SkillRoot>
 
 
 
+
+## Regression UAT (maintainers / agents after updates)
+
+After any packaging, docs, or workbench behavior change, run:
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\tests\uat\Invoke-UatRegression.ps1
+```
+
+- Rules: [docs/uat/REGRESSION-RULES.md](./uat/REGRESSION-RULES.md)
+- Cases: [docs/uat/cases/](./uat/cases/)
+- Pre-publish network packaging probe:
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\tests\uat\Invoke-UatRegression.ps1 -IncludeNetwork
+```
+
+This suite hard-checks installed skill product completeness so “only SKILL.md installed” cannot false-pass.

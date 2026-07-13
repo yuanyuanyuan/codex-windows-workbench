@@ -633,3 +633,46 @@ skills/stark-codex-windows-workbench/
 - 怎么装 / 怎么用 / 怎么卸
 
 以后再发 skill，直接按本文检查清单走，可以少踩一轮身份、分发和文档结构坑。
+
+## 坑 17：没有回归 UAT 门禁，会重复“源码绿、安装残缺”
+
+现象：
+
+- 源码树 WhatIf 正常
+- skill 可被发现
+- 但 `npx skills add` 安装后只有 `SKILL.md`
+- 因为 UAT 没把“安装产品目录完整性”做成强制门禁
+
+修复（制度化，不只是修一次）：
+
+1. 建立 `docs/uat/`：
+   - `REGRESSION-RULES.md`：何时必跑、硬门禁、通过/失败策略
+   - `cases/UAT-xxx-*.md`：用例目录
+   - `results/TEMPLATE.md`：结果模板
+2. 建立可执行 runner：
+   - `tests/uat/Invoke-UatRegression.ps1`
+3. 每次更新至少跑 Tier A：
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\tests\uat\Invoke-UatRegression.ps1
+```
+
+4. 打包/发布前再跑 Tier B（网络安装探针）：
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\tests\uat\Invoke-UatRegression.ps1 -IncludeNetwork
+```
+
+硬门禁必须包含：
+
+- 包布局是 `skills/<name>/`
+- 安装产品目录含 scripts/config/agents
+- 从 packaged/installed path 跑 WhatIf，而不是只测源码错觉路径
+- 默认 Core+Agent、无 WSL-like action
+- Summary/Impact 可读
+- 文档安装通道正确，且无 chat `/plugin`
+
+规则：
+
+- 发现一次 false-pass，就永久加一条会抓住它的 UAT case
+- CI 默认跑 Tier A；真实装包 Apply 永不默认进 CI

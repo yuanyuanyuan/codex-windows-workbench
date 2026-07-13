@@ -144,3 +144,19 @@ Expected Apply effects:
 - Full winget/scoop package Apply is intentionally gated because it changes the machine and may require elevation.
 - Agents should always report `Selected` + `Actions` from `-WhatIf` before Apply.
 
+
+## Regression gate (mandatory after updates)
+
+One-shot historical evidence is not enough. After every relevant update, run:
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\tests\uat\Invoke-UatRegression.ps1
+```
+
+Rules and case catalog:
+
+- [docs/uat/REGRESSION-RULES.md](./uat/REGRESSION-RULES.md)
+- [docs/uat/cases/](./uat/cases/)
+- Runner: [tests/uat/Invoke-UatRegression.ps1](../tests/uat/Invoke-UatRegression.ps1)
+
+The install-product-completeness check is required so packaging bugs like “only SKILL.md installed” cannot false-pass again.

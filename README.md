@@ -264,6 +264,16 @@ How to read it:
 
 ## UAT Evidence
 
+After every update, run the mandatory regression suite:
+
+```powershell
+pwsh -NoLogo -NoProfile -File .\tests\uat\Invoke-UatRegression.ps1
+```
+
+- Rules: [docs/uat/REGRESSION-RULES.md](./docs/uat/REGRESSION-RULES.md)
+- Cases: [docs/uat/cases/](./docs/uat/cases/)
+- This gate checks **installed skill product completeness**, not only source-tree discovery/WhatIf.
+
 Real install + configure notes live here:
 
 - [docs/uat-real-install-configure.md](./docs/uat-real-install-configure.md)
@@ -300,3 +310,4 @@ docs/
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+

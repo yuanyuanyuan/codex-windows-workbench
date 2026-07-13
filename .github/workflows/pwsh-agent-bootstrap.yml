@@ -9,11 +9,28 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Resolve skill package paths
+        id: paths
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $skill = 'skills/stark-codex-windows-workbench'
+          $scripts = Join-Path $skill 'scripts'
+          if (-not (Test-Path -LiteralPath $scripts)) {
+            throw "Skill scripts path missing: $scripts"
+          }
+          "skill=$skill" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "scripts=$scripts" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Using skill package: $skill"
+
       - name: Parser checks
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $files = Get-ChildItem -Path .\scripts -Recurse -Filter *.ps1
+          $scripts = '${{ steps.paths.outputs.scripts }}'
+          $files = Get-ChildItem -Path $scripts -Recurse -Filter *.ps1
+          if ($files.Count -eq 0) { throw "No PowerShell files under $scripts" }
           foreach ($f in $files) {
             $tokens = $null; $errors = $null
             [System.Management.Automation.Language.Parser]::ParseFile($f.FullName, [ref]$tokens, [ref]$errors) | Out-Null
@@ -22,26 +39,31 @@ jobs:
             }
           }
           Write-Host "Parsed $($files.Count) PowerShell files."
+
       - name: Contract tests (no real package installs)
         shell: pwsh
         env:
           PWSH_AI_AGENT_SKIP_WINGET_PREFLIGHT: '1'
         run: |
-          pwsh -NoLogo -NoProfile -File .\scripts\Test-InitializePwshAgentWindows.ps1
-          pwsh -NoLogo -NoProfile -File .\scripts\Test-AgentClients.ps1
+          $scripts = '${{ steps.paths.outputs.scripts }}'
+          pwsh -NoLogo -NoProfile -File "$scripts/Test-InitializePwshAgentWindows.ps1"
+          pwsh -NoLogo -NoProfile -File "$scripts/Test-AgentClients.ps1"
+
       - name: WhatIf default and Full (zero WSL-like actions)
         shell: pwsh
         env:
           PWSH_AI_AGENT_SKIP_WINGET_PREFLIGHT: '1'
         run: |
           $ErrorActionPreference = 'Stop'
+          $entry = Join-Path '${{ steps.paths.outputs.scripts }}' 'Initialize-PwshAgentWindows.ps1'
           foreach ($args in @(@('-WhatIf','-Json'), @('-Full','-WhatIf','-Json'))) {
-            $json = & pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 @args
+            $json = & pwsh -NoLogo -NoProfile -File $entry @args
             $report = $json | ConvertFrom-Json
             if ($report.Changed) { throw 'WhatIf reported Changed=true' }
             $bad = @($report.Actions | Where-Object { $_.Action -match 'WSL|bash|Linux|apt|brew' -or $_.Target -match 'WSL|bash|Linux|apt|brew' })
             if ($bad.Count -gt 0) { throw "WSL-like action planned: $($bad | ConvertTo-Json -Compress)" }
           }
+
       - name: Status/Verify JSON shape
         shell: pwsh
         env:
@@ -49,22 +71,33 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $false
-          $statusRaw = & pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Status -Json 2>&1 | Out-String
+          $scripts = '${{ steps.paths.outputs.scripts }}'
+          $entry = Join-Path $scripts 'Initialize-PwshAgentWindows.ps1'
+          $statusRaw = & pwsh -NoLogo -NoProfile -File $entry -Status -Json 2>&1 | Out-String
           if ($LASTEXITCODE -ne 0) { throw "Status failed: $statusRaw" }
           $status = $statusRaw | ConvertFrom-Json
           if ($status.Mode -ne 'Status') { throw 'Status mode mismatch' }
           if (-not $status.Preflight) { throw 'Status missing Preflight' }
           # Non-deep inventory JSON for clean runners (avoid deep docker latency).
-          $envJson = & pwsh -NoLogo -NoProfile -File .\scripts\Test-PwshAgentEnv.ps1 -Json 2>&1 | Out-String
+          $envJson = & pwsh -NoLogo -NoProfile -File (Join-Path $scripts 'Test-PwshAgentEnv.ps1') -Json 2>&1 | Out-String
           if ($envJson -notmatch '"RequiredMissing"') { throw "Env JSON missing RequiredMissing. Output=$envJson" }
           if ($envJson -notmatch '"RecommendedMissing"') { throw "Env JSON missing RecommendedMissing. Output=$envJson" }
           Write-Host 'Status/Verify JSON shape OK'
           exit 0
+
+      - name: UAT regression (Tier A)
+        shell: pwsh
+        env:
+          PWSH_AI_AGENT_SKIP_WINGET_PREFLIGHT: '1'
+        run: |
+          pwsh -NoLogo -NoProfile -File .\tests\uat\Invoke-UatRegression.ps1 -Json
+
       - name: PSScriptAnalyzer (optional)
         shell: pwsh
         run: |
+          $scripts = '${{ steps.paths.outputs.scripts }}'
           if (Get-Module -ListAvailable PSScriptAnalyzer) {
-            Invoke-ScriptAnalyzer -Path .\scripts -Recurse -Severity Warning,Error | Format-Table -AutoSize
+            Invoke-ScriptAnalyzer -Path $scripts -Recurse -Severity Warning,Error | Format-Table -AutoSize
           } else {
             Write-Host 'PSScriptAnalyzer not installed; skipping.'
           }
