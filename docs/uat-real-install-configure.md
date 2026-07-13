@@ -61,6 +61,7 @@ Observed install root:
 %USERPROFILE%\.agents\skills\stark-codex-windows-workbench
 SKILL.md = present
 scripts\Initialize-PwshAgentWindows.ps1 = present
+config\windows-agent-core.winget = present
 ```
 
 ### 4) Structure validation

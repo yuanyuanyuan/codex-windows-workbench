@@ -377,7 +377,8 @@ There is no `--safe` CLI flag. Safe mode is a procedure, not a switch.
 
 ### Final Check
 
-1. `SKILL.md` exists under a user skill directory
+1. SKILL.md exists under a user skill directory
+2. scripts/Initialize-PwshAgentWindows.ps1 and config/ also exist under that same skill directory
 2. User can call `stark-codex-windows-workbench` / `/stark-codex-windows-workbench`
 3. If Apply ran, verification was reported
 4. No secrets written
@@ -402,7 +403,7 @@ Skill 路径: <SkillRoot>
 |--------|---------|
 | Install skill (npx) | `npx --yes skills add yuanyuanyuan/stark-codex-windows-workbench -g -y -s stark-codex-windows-workbench` |
 | Codex plugin CLI | `codex plugin marketplace add yuanyuanyuan/stark-codex-windows-workbench` then `codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench` |
-| Manual Codex clone | `git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git %USERPROFILE%\.codex\skills\stark-codex-windows-workbench` |
+| Manual Codex install | clone repo then copy `skills/stark-codex-windows-workbench` into `%USERPROFILE%\.codex\skills\stark-codex-windows-workbench` |
 | Preflight | `pwsh -NoLogo -NoProfile -File .\scripts\Preflight-PwshAgentWindows.ps1 -Json` |
 | Preview | `pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -WhatIf -Json` |
 | Apply default | `pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Confirm:$false -Json` |
@@ -412,7 +413,7 @@ Skill 路径: <SkillRoot>
 
 ## Related
 
-- Skill entry: [`SKILL.md`](../SKILL.md)
+- Skill entry: [`SKILL.md`](../skills/stark-codex-windows-workbench/SKILL.md)
 - English README: [`README.md`](../README.md)
 - 中文 README: [`README.zh-CN.md`](../README.zh-CN.md)
 - Contracts: [`references/contracts.md`](../references/contracts.md)

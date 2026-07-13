@@ -134,8 +134,8 @@ docs/install.md
 - `SKILL.md` 的 `name` = skill 调用名
 - plugin `name` 与 skill 名保持一致
 - homepage / repository 全部指向最终仓库
-- 保持**根目录 skill 布局**（`SKILL.md` 在仓库根）
-- 不为了某宿主 monorepo 风格强行迁到 `skills/<name>/`，以免破坏已验证的 npx/相对路径
+- **不要把 `SKILL.md` 放在仓库根**（skills CLI 对 root skill 只拷 `SKILL.md`，不带 scripts/config）
+- 正确布局：`skills/<skill-name>/SKILL.md` + 同级 `scripts/` `config/` `agents/` `references/`
 
 ### 6. 必须有 Agent 可执行安装文档
 
@@ -284,15 +284,15 @@ codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench
 | 通道 | 仓库侧支持 | 实测结果 |
 |---|---|---|
 | RedSkill | 提供固定安装话术 | 分发取决于商店上架；仓库侧话术齐备 |
-| npx skills add | 根 `SKILL.md` 可被 skills CLI 发现 | 通过：Found 1 skill；可装到 `~\.agents\skills\...` |
+| npx skills add | `skills/<name>/SKILL.md` 可被 skills CLI 发现并完整拷贝 skill 目录 | 通过：Found 1 skill；安装目录含 scripts/config |
 | Codex Plugin CLI | `.codex-plugin/plugin.json` 等清单齐全 | 清单校验通过；安装走 CLI 不是聊天 `/plugin` |
 | Manual clone | 根目录即 skill 目录 | 通过：clone 到 `~\.codex\skills\...` 或 `~\.claude\skills\...` |
 
 布局决策：
 
-- 保持根目录 skill
-- 不为 Claude monorepo 风格强行迁目录
-- 以 npx 实测通过路径为优先兼容目标
+- 采用 `skills/<name>/` 布局
+- root-level `SKILL.md` 会导致 npx skills 只装文档、不装脚本
+- 以 npx 实测“安装目录文件齐全”为兼容目标，而不只是“能发现 skill”
 
 ## 发布检查清单
 
@@ -580,6 +580,38 @@ Acceptance report template
 
 - 安全预览不只是 `Changed=false`，还要让用户读得懂影响面
 - 日志要同时服务机器解析（JSON）和人类确认（Summary）
+
+
+### 坑 16：根目录 SKILL.md 导致 npx skills 安装不完整
+
+现象：
+
+```text
+npx skills add yuanyuanyuan/stark-codex-windows-workbench
+=> .agents/skills/stark-codex-windows-workbench/SKILL.md
+=> 没有 scripts/ config/
+```
+
+原因：
+
+- skills CLI 对仓库**根目录 skill** 会退化成只安装 `SKILL.md`
+- 同级 `scripts/`、`config/` 不会被一起拷贝
+
+修复：
+
+```text
+skills/stark-codex-windows-workbench/
+  SKILL.md
+  scripts/
+  config/
+  agents/
+  references/
+```
+
+经验：
+
+- skill 可发现 ≠ skill 可运行
+- 验收安装时必须检查 `scripts/Initialize-...ps1` 是否存在，不能只看 `SKILL.md`
 
 ## 结束语
 

@@ -107,12 +107,15 @@ codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench
 
 ### 手动安装（Git Clone）
 
-```bash
+`npx skills` 安装的是 `skills/stark-codex-windows-workbench/` 这个 skill 目录，不是整个仓库根目录。
+
+```powershell
 # Windows + Codex
-git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git %USERPROFILE%\.codex\skills\stark-codex-windows-workbench
+git clone --depth 1 https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:TEMP\stark-codex-windows-workbench
+Copy-Item -Recurse -Force $env:TEMP\stark-codex-windows-workbench\skills\stark-codex-windows-workbench $env:USERPROFILE\.codex\skills\stark-codex-windows-workbench
 
 # Windows + Claude Code
-git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git %USERPROFILE%\.claude\skills\stark-codex-windows-workbench
+Copy-Item -Recurse -Force $env:TEMP\stark-codex-windows-workbench\skills\stark-codex-windows-workbench $env:USERPROFILE\.claude\skills\stark-codex-windows-workbench
 ```
 
 ## 使用
@@ -280,15 +283,16 @@ codex plugin remove stark-codex-windows-workbench@stark-codex-windows-workbench
 ## 包结构
 
 ```text
-SKILL.md
-agents/openai.yaml
+skills/stark-codex-windows-workbench/
+  SKILL.md
+  agents/openai.yaml
+  scripts/
+  config/
+  references/
 .codex-plugin/plugin.json
 .claude-plugin/plugin.json
 .claude-plugin/marketplace.json
 package.json
-scripts/
-config/
-references/
 docs/
 ```
 
