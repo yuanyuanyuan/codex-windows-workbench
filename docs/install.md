@@ -153,11 +153,14 @@ Expected path:
 现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 codex-windows-workbench 技能。若已安装，则直接安装 codex-windows-workbench 技能。
 ```
 
-#### Option C — Plugin Marketplace
+#### Option C — Codex Plugin CLI
 
-```text
-/plugin marketplace add yuanyuanyuan/codex-windows-workbench
-/plugin install codex-windows-workbench@codex-windows-workbench
+
+Use the Codex CLI in a terminal. This is not a chat `/plugin` slash command.
+
+```bash
+codex plugin marketplace add yuanyuanyuan/codex-windows-workbench
+codex plugin add codex-windows-workbench@codex-windows-workbench
 ```
 
 After plugin install, locate the installed plugin/skill files on disk. If they are not under the candidate paths below, search for `SKILL.md` whose frontmatter name is `codex-windows-workbench`.
@@ -398,7 +401,7 @@ Skill 路径: <SkillRoot>
 | Action | Command |
 |--------|---------|
 | Install skill (npx) | `npx --yes skills add yuanyuanyuan/codex-windows-workbench -g -y -s codex-windows-workbench` |
-| Plugin marketplace | `/plugin marketplace add yuanyuanyuan/codex-windows-workbench` then `/plugin install codex-windows-workbench@codex-windows-workbench` |
+| Codex plugin CLI | `codex plugin marketplace add yuanyuanyuan/codex-windows-workbench` then `codex plugin add codex-windows-workbench@codex-windows-workbench` |
 | Manual Codex clone | `git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git %USERPROFILE%\.codex\skills\codex-windows-workbench` |
 | Preflight | `pwsh -NoLogo -NoProfile -File .\scripts\Preflight-PwshAgentWindows.ps1 -Json` |
 | Preview | `pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -WhatIf -Json` |
@@ -413,4 +416,6 @@ Skill 路径: <SkillRoot>
 - English README: [`README.md`](../README.md)
 - 中文 README: [`README.zh-CN.md`](../README.zh-CN.md)
 - Contracts: [`references/contracts.md`](../references/contracts.md)
+
+
 

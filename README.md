@@ -134,11 +134,14 @@ Full agent install guide: [docs/install.md](./docs/install.md)
 npx skills add yuanyuanyuan/codex-windows-workbench
 ```
 
-### Plugin Marketplace
+### Codex Plugin CLI
 
-```text
-/plugin marketplace add yuanyuanyuan/codex-windows-workbench
-/plugin install codex-windows-workbench@codex-windows-workbench
+
+Use the Codex CLI in a terminal. This is not a chat `/plugin` slash command.
+
+```bash
+codex plugin marketplace add yuanyuanyuan/codex-windows-workbench
+codex plugin add codex-windows-workbench@codex-windows-workbench
 ```
 
 ### Manual (Git Clone)
@@ -207,3 +210,5 @@ docs/
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+
+

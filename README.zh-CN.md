@@ -134,11 +134,14 @@
 npx skills add yuanyuanyuan/codex-windows-workbench
 ```
 
-### Plugin Marketplace
+### Codex Plugin CLI
 
-```text
-/plugin marketplace add yuanyuanyuan/codex-windows-workbench
-/plugin install codex-windows-workbench@codex-windows-workbench
+
+在终端使用 Codex CLI。这不是聊天里的 `/plugin` 斜杠命令。
+
+```bash
+codex plugin marketplace add yuanyuanyuan/codex-windows-workbench
+codex plugin add codex-windows-workbench@codex-windows-workbench
 ```
 
 ### 手动安装（Git Clone）
@@ -207,3 +210,5 @@ docs/
 ## 许可证
 
 MIT — 见 [LICENSE](./LICENSE)。
+
+

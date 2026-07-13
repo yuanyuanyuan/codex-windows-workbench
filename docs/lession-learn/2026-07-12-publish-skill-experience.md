@@ -43,8 +43,8 @@ Skill：`codex-windows-workbench`
    ```
 3. **Plugin Marketplace**  
    ```text
-   /plugin marketplace add yuanyuanyuan/codex-windows-workbench
-   /plugin install codex-windows-workbench@codex-windows-workbench
+   codex plugin marketplace add yuanyuanyuan/codex-windows-workbench
+   codex plugin add codex-windows-workbench@codex-windows-workbench
    ```
 4. **Manual Git Clone**  
    ```bash
@@ -153,8 +153,8 @@ plugin name  = codex-windows-workbench
 npx skills add <owner>/<repo>
 
 ### Plugin Marketplace
-/plugin marketplace add <owner>/<repo>
-/plugin install <plugin>@<plugin>
+codex plugin marketplace add <owner>/<repo>
+codex plugin add <plugin>@<marketplace>
 
 ### Manual (Git Clone)
 git clone https://github.com/<owner>/<repo>.git %USERPROFILE%\.codex\skills\<skill>
@@ -218,3 +218,20 @@ git clone https://github.com/<owner>/<repo>.git %USERPROFILE%\.codex\skills\<ski
 4. `-AgentClients` 明确为 Codex 探测，不安装/不登录
 5. 文档披露 Core 真实影响面与 winget 硬依赖
 6. README 顶部增加痛点、解决什么、Before/After
+
+
+## Plugin 安装命令纠错（2026-07-13）
+
+错误：README 写成聊天斜杠命令 `/plugin marketplace add ...`，Codex 会报：
+`Unrecognized command '/plugin'`
+
+正确：使用终端 CLI：
+
+```bash
+codex plugin marketplace add yuanyuanyuan/codex-windows-workbench
+codex plugin add codex-windows-workbench@codex-windows-workbench
+```
+
+注意：
+- `/plugin` 不是 Codex 聊天 slash command
+- `codex plugin install` 也不存在；安装插件用 `codex plugin add`
