@@ -41,6 +41,77 @@
 | 恢复 | 靠猜卸载 | 仅回滚受管设置 |
 | 可重复 | “我这能跑” | 幂等 phase + status/verify |
 
+## 执行过程与效果
+
+调用 skill 后，实际会按这条链路跑：
+
+```text
+调用 skill
+  -> 定位脚本
+  -> 预检 Preflight
+  -> 默认先 WhatIf 预览
+  -> 你确认
+  -> Apply Core + Agent
+  -> 应用后冒烟验证
+  -> 需要时再 Status / Verify / Rollback
+```
+
+| 步骤 | 实际执行 | 对机器的影响 | 你能看到什么 |
+|------|----------|--------------|--------------|
+| 1. 调用 skill | `codex-windows-workbench` / `/codex-windows-workbench` | 还不动机器 | Agent 载入 skill 指令 |
+| 2. 预检 | `Preflight-PwshAgentWindows.ps1 -Json` | 只读检查 | 宿主/工具阻断项与警告 |
+| 3. 预览 | `Initialize-...ps1 -WhatIf -Json` | **不改动**（`Changed=false`） | `Selected`、`Phases`、`Actions`、`SafetyHooks` |
+| 4. 确认 | Agent 向你确认 | 不改动 | 清楚说明 Core + Agent 影响 |
+| 5. 应用 | `Initialize-...ps1 -Confirm:$false -Json` | 安装基线工具 + 托管 overlay | 各 phase 结果 + 冒烟验证 |
+| 6. 验证/状态 | `-Verify` / `-Status` | 只读 | 通过/失败与 phase 完成情况 |
+| 7. 回滚 | `-Rollback -Confirm:$false` | 只恢复受管设置 | 已装软件包不会被卸载 |
+
+### 默认 Apply 会带来什么（Core + Agent）
+
+**Core**
+
+- 用 winget-configure 应用 `config/windows-agent-core.winget` 基线包
+- 如需则 bootstrap scoop
+- 安装常用 CLI：`ripgrep fd fzf jq bat delta yq 7zip zip nuget`
+- 部分包可能需要提权
+
+**Agent**
+
+- 写入托管 PowerShell overlay 到 `%USERPROFILE%\.config\pwsh-ai`
+- 创建托管 agent 目录（hooks/mcp/skills/...）
+- 在 `%LOCALAPPDATA%\PwshAiAgent\state` 记录受管状态
+
+**默认一定不会发生**
+
+- 不用 WSL / bash / apt / brew
+- 不自动登录 Codex
+- 不写 secret / MCP 凭据
+- 不启用 Developer / NativeBuild / Containers（除非你明确要求）
+- 回滚不会卸载软件包
+
+### 预览输出长什么样
+
+```json
+{
+  "Mode": "WhatIf",
+  "Changed": false,
+  "Selected": ["Core", "Agent"],
+  "Phases": [
+    { "Name": "Core", "Status": "Planned" },
+    { "Name": "Agent", "Status": "Planned" },
+    { "Name": "Developer", "Status": "NotSelected" }
+  ],
+  "SafetyHooks": false
+}
+```
+
+怎么读：
+
+- 以 `Selected` + `Actions` 为准
+- `Planned` = 会执行
+- `NotSelected` = 不会执行
+- `Changed=false` = 预览没有改机器
+
 ## 安装
 
 把下面这段发给你的 Agent：

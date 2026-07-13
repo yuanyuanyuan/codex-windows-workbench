@@ -41,6 +41,77 @@ Default path: **Core + Agent**. No WSL. No auth automation. No secret writes.
 | Recovery | Uninstall guesswork | Rollback managed settings only |
 | Repeatability | “Works on my machine” | Idempotent phases + status/verify |
 
+## Execution Effects
+
+What happens when you call the skill, step by step:
+
+```text
+call skill
+  -> resolve scripts
+  -> Preflight
+  -> WhatIf preview (default)
+  -> user confirms
+  -> Apply Core + Agent
+  -> post-apply smoke verify
+  -> Status / Verify / Rollback on request
+```
+
+| Step | What runs | Machine effect | What you see |
+|------|-----------|----------------|--------------|
+| 1. Call skill | `codex-windows-workbench` / `/codex-windows-workbench` | No machine change yet | Agent loads skill instructions |
+| 2. Preflight | `Preflight-PwshAgentWindows.ps1 -Json` | Read-only checks | Host/tool blockers and warnings |
+| 3. Preview | `Initialize-...ps1 -WhatIf -Json` | **No changes** (`Changed=false`) | `Selected`, `Phases`, `Actions`, `SafetyHooks` |
+| 4. Confirm | Agent asks you | No changes | Clear Core + Agent impact summary |
+| 5. Apply | `Initialize-...ps1 -Confirm:$false -Json` | Installs baseline tools + managed overlay | Phase results + smoke verification |
+| 6. Verify/Status | `-Verify` / `-Status` | Read-only | Pass/fail and phase completeness |
+| 7. Rollback | `-Rollback -Confirm:$false` | Restores managed settings only | Packages stay installed |
+
+### Default Apply effects (Core + Agent)
+
+**Core**
+
+- winget-configure baseline packages from `config/windows-agent-core.winget`
+- bootstrap scoop if needed
+- install common CLI tools: `ripgrep fd fzf jq bat delta yq 7zip zip nuget`
+- some packages may require elevation
+
+**Agent**
+
+- write managed PowerShell overlay under `%USERPROFILE%\.config\pwsh-ai`
+- create managed agent directories (hooks/mcp/skills/...)
+- record managed state under `%LOCALAPPDATA%\PwshAiAgent\state`
+
+**Never happens by default**
+
+- no WSL / bash / apt / brew
+- no Codex auto-login
+- no secret / MCP credential writes
+- no Developer / NativeBuild / Containers unless requested
+- no package uninstall on rollback
+
+### Example preview output shape
+
+```json
+{
+  "Mode": "WhatIf",
+  "Changed": false,
+  "Selected": ["Core", "Agent"],
+  "Phases": [
+    { "Name": "Core", "Status": "Planned" },
+    { "Name": "Agent", "Status": "Planned" },
+    { "Name": "Developer", "Status": "NotSelected" }
+  ],
+  "SafetyHooks": false
+}
+```
+
+Read preview like this:
+
+- trust `Selected` + `Actions`
+- `Planned` means it will run
+- `NotSelected` means it will not run
+- `Changed=false` means preview did not modify the machine
+
 ## Install
 
 Copy this to your Agent:

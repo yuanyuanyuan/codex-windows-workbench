@@ -34,6 +34,18 @@ Not a multi-agent marketplace. Not an auth/login tool.
    pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Rollback -Confirm:$false -Json
    ```
 
+## Execution effects
+
+Default call should feel like:
+
+1. Preview plan (`-WhatIf`) → no machine changes
+2. User confirms
+3. Apply Core + Agent (`-Confirm:$false`) → packages + managed overlay
+4. Automatic post-apply smoke verification
+5. Optional `-Status` / `-Verify` / `-Rollback`
+
+Report phase results and whether anything was `NotSelected`.
+
 ## Optional workloads
 
 Only when explicitly requested:
@@ -69,3 +81,4 @@ Only when explicitly requested:
 - `references/contracts.md`
 - `docs/windows-agent-env.md`
 - `CONTEXT.md`
+

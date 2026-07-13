@@ -36,6 +36,22 @@ https://github.com/yuanyuanyuan/codex-windows-workbench
 
 Install the `codex-windows-workbench` skill, then optionally configure a native Windows PowerShell 7 Codex workbench.
 
+### Execution effects (what the user should expect)
+
+When the skill runs end-to-end, the observable effect is:
+
+1. **Skill resolved** — scripts found under a user skill directory
+2. **Preflight** — blockers/warnings only; no mutation
+3. **WhatIf** — JSON plan with `Selected`, `Phases(Planned|NotSelected)`, `Actions`, `SafetyHooks=false` by default; `Changed=false`
+4. **Apply (after confirm)** — Core + Agent only:
+   - Core: winget baseline + scoop CLI tools
+   - Agent: managed overlay under `%USERPROFILE%\.config\pwsh-ai` and state under `%LOCALAPPDATA%\PwshAiAgent\state`
+5. **Post-apply smoke verify** — automatic after Apply
+6. **Status/Verify** — read-only health/completeness
+7. **Rollback** — restore managed settings/files only; packages remain
+
+Tell the user these effects in plain language before Apply.
+
 Default path after skill install:
 
 1. Resolve skill root
@@ -397,3 +413,4 @@ Skill 路径: <SkillRoot>
 - English README: [`README.md`](../README.md)
 - 中文 README: [`README.zh-CN.md`](../README.zh-CN.md)
 - Contracts: [`references/contracts.md`](../references/contracts.md)
+
