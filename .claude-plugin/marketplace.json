@@ -1,12 +1,12 @@
 {
-  "name": "codex-windows-workbench",
+  "name": "stark-codex-windows-workbench",
   "description": "Native Windows PowerShell 7 workbench skill for Codex (Core+Agent default, no WSL)",
   "owner": {
     "name": "yuanyuanyuan"
   },
   "plugins": [
     {
-      "name": "codex-windows-workbench",
+      "name": "stark-codex-windows-workbench",
       "description": "Maintain a native Windows PowerShell 7 workbench for Codex",
       "version": "0.1.0",
       "source": "./",
@@ -16,3 +16,4 @@
     }
   ]
 }
+

@@ -1,9 +1,9 @@
 # UAT: Real Install And Configure Process
 
 Date: 2026-07-13  
-Skill: `codex-windows-workbench`  
+Skill: `stark-codex-windows-workbench`  
 Host: native Windows + PowerShell 7.5.8  
-Repo: `yuanyuanyuan/codex-windows-workbench`
+Repo: `yuanyuanyuan/stark-codex-windows-workbench`
 
 ## Goal
 
@@ -39,26 +39,26 @@ npx: available
 ```bash
 npx --yes skills add . --list -y
 # equivalent published form:
-# npx --yes skills add yuanyuanyuan/codex-windows-workbench --list -y
+# npx --yes skills add yuanyuanyuan/stark-codex-windows-workbench --list -y
 ```
 
 Observed:
 
 ```text
 Found 1 skill
-codex-windows-workbench
+stark-codex-windows-workbench
 ```
 
 ### 3) Skill install
 
 ```bash
-npx --yes skills add yuanyuanyuan/codex-windows-workbench -g -y -s codex-windows-workbench -a codex --copy
+npx --yes skills add yuanyuanyuan/stark-codex-windows-workbench -g -y -s stark-codex-windows-workbench -a codex --copy
 ```
 
 Observed install root:
 
 ```text
-%USERPROFILE%\.agents\skills\codex-windows-workbench
+%USERPROFILE%\.agents\skills\stark-codex-windows-workbench
 SKILL.md = present
 scripts\Initialize-PwshAgentWindows.ps1 = present
 ```
@@ -142,3 +142,4 @@ Expected Apply effects:
 - Absolute personal paths were sanitized to `%USERPROFILE%` / relative repo paths in published docs.
 - Full winget/scoop package Apply is intentionally gated because it changes the machine and may require elevation.
 - Agents should always report `Selected` + `Actions` from `-WhatIf` before Apply.
+

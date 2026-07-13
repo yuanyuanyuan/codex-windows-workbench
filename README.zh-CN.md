@@ -1,8 +1,8 @@
-# Codex Windows Workbench
+# Stark Codex Windows Workbench
 
 > English README: [README.md](./README.md)
 
-**Skill：** `codex-windows-workbench`
+**Skill：** `stark-codex-windows-workbench`
 
 ## 痛点
 
@@ -16,7 +16,7 @@
 
 ## 这个 Skill 解决什么
 
-`codex-windows-workbench` 是面向 Codex 的 **原生 Windows PowerShell 7 工作台 skill**。
+`stark-codex-windows-workbench` 是面向 Codex 的 **原生 Windows PowerShell 7 工作台 skill**。
 
 它给 Agent 一个直接入口，用来：
 
@@ -33,7 +33,7 @@
 
 | | Before | After |
 |---|---|---|
-| 入口 | 一堆临时脚本和聊天指令 | 直接调用 `codex-windows-workbench` / `/codex-windows-workbench` |
+| 入口 | 一堆临时脚本和聊天指令 | 直接调用 `stark-codex-windows-workbench` / `/stark-codex-windows-workbench` |
 | 宿主模型 | WSL/bash 渗透、shell 混用 | 仅原生 Windows + PowerShell 7 |
 | 变更安全 | 先装再看影响 | 先 `-WhatIf` 预览，再显式 Apply |
 | 基线 | 机器各自为政 | 托管的 Core + Agent 默认路径 |
@@ -58,7 +58,7 @@
 
 | 步骤 | 实际执行 | 对机器的影响 | 你能看到什么 |
 |------|----------|--------------|--------------|
-| 1. 调用 skill | `codex-windows-workbench` / `/codex-windows-workbench` | 还不动机器 | Agent 载入 skill 指令 |
+| 1. 调用 skill | `stark-codex-windows-workbench` / `/stark-codex-windows-workbench` | 还不动机器 | Agent 载入 skill 指令 |
 | 2. 预检 | `Preflight-PwshAgentWindows.ps1 -Json` | 只读检查 | 宿主/工具阻断项与警告 |
 | 3. 预览 | `Initialize-...ps1 -WhatIf -Json` | **不改动**（`Changed=false`） | `Selected`、`Phases`、`Actions`、`SafetyHooks` |
 | 4. 确认 | Agent 向你确认 | 不改动 | 清楚说明 Core + Agent 影响 |
@@ -143,26 +143,26 @@ npx: available
 1. 从仓库/包发现 skill：
 
 ```bash
-npx --yes skills add yuanyuanyuan/codex-windows-workbench --list -y
+npx --yes skills add yuanyuanyuan/stark-codex-windows-workbench --list -y
 ```
 
 观察到：
 
 ```text
 Found 1 skill
-codex-windows-workbench
+stark-codex-windows-workbench
 ```
 
 2. 全局安装 skill（Codex）：
 
 ```bash
-npx --yes skills add yuanyuanyuan/codex-windows-workbench -g -y -s codex-windows-workbench -a codex --copy
+npx --yes skills add yuanyuanyuan/stark-codex-windows-workbench -g -y -s stark-codex-windows-workbench -a codex --copy
 ```
 
 观察到的安装位置：
 
 ```text
-%USERPROFILE%\.agents\skills\codex-windows-workbench
+%USERPROFILE%\.agents\skills\stark-codex-windows-workbench
 SKILL.md = present
 scripts\Initialize-PwshAgentWindows.ps1 = present
 ```
@@ -248,7 +248,7 @@ pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify 
 
 | 检查项 | 期望真实结果 |
 |--------|--------------|
-| Skill 可发现 | `Found 1 skill: codex-windows-workbench` |
+| Skill 可发现 | `Found 1 skill: stark-codex-windows-workbench` |
 | Skill 已安装 | 用户 skill 目录下有 `SKILL.md` + 初始化脚本 |
 | 预览安全 | `-WhatIf` 返回 `Changed=false` |
 | 默认选择 | 仅 `Selected=["Core","Agent"]` |
@@ -261,7 +261,7 @@ pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify 
 ### 给 Agent 的一句话复现
 
 ```text
-按 docs/install.md 安装 codex-windows-workbench；先 npx 安装 skill，再执行 -WhatIf -Json 预览 Core+Agent，把 Selected/Actions 报告给我确认后，才允许 -Confirm:$false Apply，最后跑 -Status/-Verify。
+按 docs/install.md 安装 stark-codex-windows-workbench；先 npx 安装 skill，再执行 -WhatIf -Json 预览 Core+Agent，把 Selected/Actions 报告给我确认后，才允许 -Confirm:$false Apply，最后跑 -Status/-Verify。
 ```
 
 完整记录见：[docs/uat-real-install-configure.md](./docs/uat-real-install-configure.md)
@@ -271,7 +271,7 @@ pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify 
 把下面这段发给你的 Agent：
 
 ```text
-帮我安装 codex-windows-workbench：https://raw.githubusercontent.com/yuanyuanyuan/codex-windows-workbench/master/docs/install.md
+帮我安装 stark-codex-windows-workbench：https://raw.githubusercontent.com/yuanyuanyuan/stark-codex-windows-workbench/master/docs/install.md
 ```
 
 完整 Agent 安装文档：[docs/install.md](./docs/install.md)
@@ -279,13 +279,13 @@ pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify 
 ### RedSkill
 
 ```text
-现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 codex-windows-workbench 技能。若已安装，则直接安装 codex-windows-workbench 技能。
+现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 stark-codex-windows-workbench 技能。若已安装，则直接安装 stark-codex-windows-workbench 技能。
 ```
 
 ### npx（推荐）
 
 ```bash
-npx skills add yuanyuanyuan/codex-windows-workbench
+npx skills add yuanyuanyuan/stark-codex-windows-workbench
 ```
 
 ### Codex Plugin CLI
@@ -294,28 +294,28 @@ npx skills add yuanyuanyuan/codex-windows-workbench
 在终端使用 Codex CLI。这不是聊天里的 `/plugin` 斜杠命令。
 
 ```bash
-codex plugin marketplace add yuanyuanyuan/codex-windows-workbench
-codex plugin add codex-windows-workbench@codex-windows-workbench
+codex plugin marketplace add yuanyuanyuan/stark-codex-windows-workbench
+codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench
 ```
 
 ### 手动安装（Git Clone）
 
 ```bash
 # Windows + Codex
-git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git %USERPROFILE%\.codex\skills\codex-windows-workbench
+git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git %USERPROFILE%\.codex\skills\stark-codex-windows-workbench
 
 # Windows + Claude Code
-git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git %USERPROFILE%\.claude\skills\codex-windows-workbench
+git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git %USERPROFILE%\.claude\skills\stark-codex-windows-workbench
 ```
 
 ## 使用
 
 ```text
-codex-windows-workbench
+stark-codex-windows-workbench
 ```
 
 ```text
-/codex-windows-workbench
+/stark-codex-windows-workbench
 ```
 
 ## 能做什么
@@ -364,5 +364,6 @@ docs/
 ## 许可证
 
 MIT — 见 [LICENSE](./LICENSE)。
+
 
 

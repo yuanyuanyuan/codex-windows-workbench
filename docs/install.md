@@ -1,31 +1,31 @@
-# Codex Windows Workbench — Installation Guide
+# Stark Stark Codex Windows Workbench — Installation Guide
 
 ## For Humans
 
 把下面这句话发给你的 AI Agent：
 
 ```text
-帮我安装 codex-windows-workbench：https://raw.githubusercontent.com/yuanyuanyuan/codex-windows-workbench/master/docs/install.md
+帮我安装 stark-codex-windows-workbench：https://raw.githubusercontent.com/yuanyuanyuan/stark-codex-windows-workbench/master/docs/install.md
 ```
 
 只要 skill、不要改机器配置（安全模式）：
 
 ```text
-帮我安装 codex-windows-workbench（安全模式）：https://raw.githubusercontent.com/yuanyuanyuan/codex-windows-workbench/master/docs/install.md
+帮我安装 stark-codex-windows-workbench（安全模式）：https://raw.githubusercontent.com/yuanyuanyuan/stark-codex-windows-workbench/master/docs/install.md
 安装时只安装 skill，不要执行工作台 Apply；先用 -WhatIf 预览。
 ```
 
 默认安装 + 应用 Core + Agent 工作台：
 
 ```text
-帮我安装 codex-windows-workbench 并配置默认工作台：https://raw.githubusercontent.com/yuanyuanyuan/codex-windows-workbench/master/docs/install.md
+帮我安装 stark-codex-windows-workbench 并配置默认工作台：https://raw.githubusercontent.com/yuanyuanyuan/stark-codex-windows-workbench/master/docs/install.md
 先预览，确认后再 Apply Core + Agent。使用 -Confirm:$false 执行。
 ```
 
 源仓库：
 
 ```text
-https://github.com/yuanyuanyuan/codex-windows-workbench
+https://github.com/yuanyuanyuan/stark-codex-windows-workbench
 ```
 
 ---
@@ -34,7 +34,7 @@ https://github.com/yuanyuanyuan/codex-windows-workbench
 
 ### Goal
 
-Install the `codex-windows-workbench` skill, then optionally configure a native Windows PowerShell 7 Codex workbench.
+Install the `stark-codex-windows-workbench` skill, then optionally configure a native Windows PowerShell 7 Codex workbench.
 
 ### Execution effects (what the user should expect)
 
@@ -97,9 +97,9 @@ Prefer global/user skill dirs. Do not pollute the current project workspace.
 
 | Purpose | Directory |
 |---------|-----------|
-| Preferred skill install (`npx skills`) | `%USERPROFILE%\.agents\skills\codex-windows-workbench\` |
-| Codex manual skill path | `%USERPROFILE%\.codex\skills\codex-windows-workbench\` |
-| Claude manual skill path | `%USERPROFILE%\.claude\skills\codex-windows-workbench\` |
+| Preferred skill install (`npx skills`) | `%USERPROFILE%\.agents\skills\stark-codex-windows-workbench\` |
+| Codex manual skill path | `%USERPROFILE%\.codex\skills\stark-codex-windows-workbench\` |
+| Claude manual skill path | `%USERPROFILE%\.claude\skills\stark-codex-windows-workbench\` |
 | Managed workbench state | `%LOCALAPPDATA%\PwshAiAgent\state\` |
 | Managed agent overlay | `%USERPROFILE%\.config\pwsh-ai\` |
 | Runtime scripts | `<skill-root>\scripts\` |
@@ -132,25 +132,25 @@ Choose the first method that works. Prefer **npx**.
 #### Option A — npx (Recommended)
 
 ```powershell
-npx --yes skills add yuanyuanyuan/codex-windows-workbench -g -y -s codex-windows-workbench
+npx --yes skills add yuanyuanyuan/stark-codex-windows-workbench -g -y -s stark-codex-windows-workbench
 ```
 
 Codex-only host:
 
 ```powershell
-npx --yes skills add yuanyuanyuan/codex-windows-workbench -g -y -s codex-windows-workbench -a codex
+npx --yes skills add yuanyuanyuan/stark-codex-windows-workbench -g -y -s stark-codex-windows-workbench -a codex
 ```
 
 Expected path:
 
 ```text
-%USERPROFILE%\.agents\skills\codex-windows-workbench
+%USERPROFILE%\.agents\skills\stark-codex-windows-workbench
 ```
 
 #### Option B — RedSkill
 
 ```text
-现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 codex-windows-workbench 技能。若已安装，则直接安装 codex-windows-workbench 技能。
+现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 stark-codex-windows-workbench 技能。若已安装，则直接安装 stark-codex-windows-workbench 技能。
 ```
 
 #### Option C — Codex Plugin CLI
@@ -159,36 +159,36 @@ Expected path:
 Use the Codex CLI in a terminal. This is not a chat `/plugin` slash command.
 
 ```bash
-codex plugin marketplace add yuanyuanyuan/codex-windows-workbench
-codex plugin add codex-windows-workbench@codex-windows-workbench
+codex plugin marketplace add yuanyuanyuan/stark-codex-windows-workbench
+codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench
 ```
 
-After plugin install, locate the installed plugin/skill files on disk. If they are not under the candidate paths below, search for `SKILL.md` whose frontmatter name is `codex-windows-workbench`.
+After plugin install, locate the installed plugin/skill files on disk. If they are not under the candidate paths below, search for `SKILL.md` whose frontmatter name is `stark-codex-windows-workbench`.
 
 #### Option D — Manual Git Clone
 
 ```powershell
-git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git $env:USERPROFILE\.codex\skills\codex-windows-workbench
+git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:USERPROFILE\.codex\skills\stark-codex-windows-workbench
 # or Claude:
-git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git $env:USERPROFILE\.claude\skills\codex-windows-workbench
+git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:USERPROFILE\.claude\skills\stark-codex-windows-workbench
 ```
 
 #### Resolve skill root
 
 ```powershell
 $candidates = @(
-  (Join-Path $env:USERPROFILE '.agents\skills\codex-windows-workbench')
-  (Join-Path $env:USERPROFILE '.codex\skills\codex-windows-workbench')
-  (Join-Path $env:USERPROFILE '.claude\skills\codex-windows-workbench')
+  (Join-Path $env:USERPROFILE '.agents\skills\stark-codex-windows-workbench')
+  (Join-Path $env:USERPROFILE '.codex\skills\stark-codex-windows-workbench')
+  (Join-Path $env:USERPROFILE '.claude\skills\stark-codex-windows-workbench')
 )
 $SkillRoot = $candidates | Where-Object { Test-Path (Join-Path $_ 'SKILL.md') } | Select-Object -First 1
 if (-not $SkillRoot) {
   $hit = Get-ChildItem -Path (Join-Path $env:USERPROFILE '.codex'), (Join-Path $env:USERPROFILE '.agents'), (Join-Path $env:USERPROFILE '.claude') -Filter SKILL.md -Recurse -ErrorAction SilentlyContinue |
-    Where-Object { (Get-Content $_.FullName -TotalCount 5 -ErrorAction SilentlyContinue) -match 'codex-windows-workbench' } |
+    Where-Object { (Get-Content $_.FullName -TotalCount 5 -ErrorAction SilentlyContinue) -match 'stark-codex-windows-workbench' } |
     Select-Object -First 1
   if ($hit) { $SkillRoot = $hit.Directory.FullName }
 }
-if (-not $SkillRoot) { throw 'codex-windows-workbench skill not found after install.' }
+if (-not $SkillRoot) { throw 'stark-codex-windows-workbench skill not found after install.' }
 $Init = Join-Path $SkillRoot 'scripts\Initialize-PwshAgentWindows.ps1'
 $Preflight = Join-Path $SkillRoot 'scripts\Preflight-PwshAgentWindows.ps1'
 Test-Path (Join-Path $SkillRoot 'SKILL.md'); Test-Path $Init; Test-Path $Preflight
@@ -291,8 +291,8 @@ Report:
 - next invocation:
 
 ```text
-codex-windows-workbench
-/codex-windows-workbench
+stark-codex-windows-workbench
+/stark-codex-windows-workbench
 ```
 
 ---
@@ -378,7 +378,7 @@ There is no `--safe` CLI flag. Safe mode is a procedure, not a switch.
 ### Final Check
 
 1. `SKILL.md` exists under a user skill directory
-2. User can call `codex-windows-workbench` / `/codex-windows-workbench`
+2. User can call `stark-codex-windows-workbench` / `/stark-codex-windows-workbench`
 3. If Apply ran, verification was reported
 4. No secrets written
 5. No optional workload enabled silently
@@ -387,11 +387,11 @@ There is no `--safe` CLI flag. Safe mode is a procedure, not a switch.
 Success template:
 
 ```text
-codex-windows-workbench 已安装。
+stark-codex-windows-workbench 已安装。
 Skill 路径: <SkillRoot>
 工作台: <not applied | previewed | applied Core+Agent>
 验证: <pass/fail/skipped>
-以后直接调用: codex-windows-workbench 或 /codex-windows-workbench
+以后直接调用: stark-codex-windows-workbench 或 /stark-codex-windows-workbench
 ```
 
 ---
@@ -400,9 +400,9 @@ Skill 路径: <SkillRoot>
 
 | Action | Command |
 |--------|---------|
-| Install skill (npx) | `npx --yes skills add yuanyuanyuan/codex-windows-workbench -g -y -s codex-windows-workbench` |
-| Codex plugin CLI | `codex plugin marketplace add yuanyuanyuan/codex-windows-workbench` then `codex plugin add codex-windows-workbench@codex-windows-workbench` |
-| Manual Codex clone | `git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git %USERPROFILE%\.codex\skills\codex-windows-workbench` |
+| Install skill (npx) | `npx --yes skills add yuanyuanyuan/stark-codex-windows-workbench -g -y -s stark-codex-windows-workbench` |
+| Codex plugin CLI | `codex plugin marketplace add yuanyuanyuan/stark-codex-windows-workbench` then `codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench` |
+| Manual Codex clone | `git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git %USERPROFILE%\.codex\skills\stark-codex-windows-workbench` |
 | Preflight | `pwsh -NoLogo -NoProfile -File .\scripts\Preflight-PwshAgentWindows.ps1 -Json` |
 | Preview | `pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -WhatIf -Json` |
 | Apply default | `pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Confirm:$false -Json` |
@@ -418,4 +418,5 @@ Skill 路径: <SkillRoot>
 - Contracts: [`references/contracts.md`](../references/contracts.md)
 
 - UAT real process notes: [docs/uat-real-install-configure.md](./uat-real-install-configure.md)
+
 

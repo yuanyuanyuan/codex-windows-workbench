@@ -1,8 +1,8 @@
 # 发布 Skill 经验总结（Codex / Windows）
 
 日期：2026-07-12  
-仓库：`yuanyuanyuan/codex-windows-workbench`  
-Skill：`codex-windows-workbench`
+仓库：`yuanyuanyuan/stark-codex-windows-workbench`  
+Skill：`stark-codex-windows-workbench`
 
 ## 背景
 
@@ -17,15 +17,15 @@ Skill：`codex-windows-workbench`
 
 ### 1. 先定身份，再定仓库名
 
-- **Skill 名是产品身份**：`codex-windows-workbench`
+- **Skill 名是产品身份**：`stark-codex-windows-workbench`
 - **仓库名是分发容器**：应尽量与 Skill 名一致
 - 用户看到的调用入口只有 skill 名：
-  - `codex-windows-workbench`
-  - `/codex-windows-workbench`
+  - `stark-codex-windows-workbench`
+  - `/stark-codex-windows-workbench`
 
 错误示例：
 
-- Skill 叫 `codex-windows-workbench`
+- Skill 叫 `stark-codex-windows-workbench`
 - 仓库叫 `windows-pwsh-agent-workbench`
 - README 又按“bootstrap installer”写
 
@@ -39,16 +39,16 @@ Skill：`codex-windows-workbench`
    给中文 Agent/商店用户的固定安装话术。
 2. **npx skills add（推荐）**  
    ```bash
-   npx skills add yuanyuanyuan/codex-windows-workbench
+   npx skills add yuanyuanyuan/stark-codex-windows-workbench
    ```
 3. **Plugin Marketplace**  
    ```text
-   codex plugin marketplace add yuanyuanyuan/codex-windows-workbench
-   codex plugin add codex-windows-workbench@codex-windows-workbench
+   codex plugin marketplace add yuanyuanyuan/stark-codex-windows-workbench
+   codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench
    ```
 4. **Manual Git Clone**  
    ```bash
-   git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git %USERPROFILE%\.codex\skills\codex-windows-workbench
+   git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git %USERPROFILE%\.codex\skills\stark-codex-windows-workbench
    ```
 
 原则：
@@ -68,8 +68,8 @@ Skill：`codex-windows-workbench`
 应写成：
 
 ```text
-codex-windows-workbench
-/codex-windows-workbench
+stark-codex-windows-workbench
+/stark-codex-windows-workbench
 ```
 
 需要参数时，再在 skill 内部路由；README 不承担命令百科。
@@ -125,7 +125,7 @@ package.json
 1. **先按安装器项目写 README**  
    用户一眼判断“这不是 skill”。修复：README 以 skill 安装/调用为中心。
 2. **仓库名与 skill 名脱节**  
-   `windows-pwsh-agent-workbench` 不是 skill 名，导致安装命令不可直觉。修复：重命名为 `codex-windows-workbench`。
+   `windows-pwsh-agent-workbench` 不是 skill 名，导致安装命令不可直觉。修复：重命名为 `stark-codex-windows-workbench`。
 3. **使用说明过重**  
    写了触发场景和示例句，偏离“直接调用”。修复：使用区只保留 skill 名调用。
 4. **安装通道过窄**  
@@ -136,9 +136,9 @@ package.json
 ### 命名
 
 ```text
-skill name   = codex-windows-workbench
-repo name    = codex-windows-workbench
-plugin name  = codex-windows-workbench
+skill name   = stark-codex-windows-workbench
+repo name    = stark-codex-windows-workbench
+plugin name  = stark-codex-windows-workbench
 ```
 
 ### 安装区最小骨架
@@ -183,8 +183,8 @@ git clone https://github.com/<owner>/<repo>.git %USERPROFILE%\.codex\skills\<ski
 在本机对当前根 `SKILL.md` 布局做了验证：
 
 1. **npx skills add（通过）**
-   - `npx skills add yuanyuanyuan/codex-windows-workbench --list` → Found 1 skill: `codex-windows-workbench`
-   - `npx skills add . -g -y -s codex-windows-workbench -a codex --copy` → 安装到 `~\.agents\skills\codex-windows-workbench`
+   - `npx skills add yuanyuanyuan/stark-codex-windows-workbench --list` → Found 1 skill: `stark-codex-windows-workbench`
+   - `npx skills add . -g -y -s stark-codex-windows-workbench -a codex --copy` → 安装到 `~\.agents\skills\stark-codex-windows-workbench`
 2. **Manual clone（通过）**
    - 根目录直接是 skill 目录：`SKILL.md` + `scripts/` + `agents/`
 3. **Plugin Marketplace（清单已补齐）**
@@ -203,7 +203,7 @@ git clone https://github.com/<owner>/<repo>.git %USERPROFILE%\.codex\skills\<ski
 新增 `docs/install.md`，模式参考 Agent Reach：
 
 - 人类入口一句话：
-  `帮我安装 codex-windows-workbench：https://raw.githubusercontent.com/yuanyuanyuan/codex-windows-workbench/master/docs/install.md`
+  `帮我安装 stark-codex-windows-workbench：https://raw.githubusercontent.com/yuanyuanyuan/stark-codex-windows-workbench/master/docs/install.md`
 - 文档主体写给 AI Agent：目标、边界、目录规则、分步命令、安全模式、失败处理、验收模板
 - README 中英都挂上 raw install.md 入口
 - 这样不依赖用户先读 README，也能让 Agent 按文档完成 skill 安装与可选工作台配置
@@ -228,10 +228,11 @@ git clone https://github.com/<owner>/<repo>.git %USERPROFILE%\.codex\skills\<ski
 正确：使用终端 CLI：
 
 ```bash
-codex plugin marketplace add yuanyuanyuan/codex-windows-workbench
-codex plugin add codex-windows-workbench@codex-windows-workbench
+codex plugin marketplace add yuanyuanyuan/stark-codex-windows-workbench
+codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench
 ```
 
 注意：
 - `/plugin` 不是 Codex 聊天 slash command
 - `codex plugin install` 也不存在；安装插件用 `codex plugin add`
+

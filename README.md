@@ -1,8 +1,8 @@
-# Codex Windows Workbench
+# Stark Codex Windows Workbench
 
 > 中文说明：[README.zh-CN.md](./README.zh-CN.md)
 
-**Skill:** `codex-windows-workbench`
+**Skill:** `stark-codex-windows-workbench`
 
 ## Pain Points
 
@@ -16,7 +16,7 @@ On native Windows, getting Codex ready for real engineering work is usually mess
 
 ## What This Skill Solves
 
-`codex-windows-workbench` is a **native Windows PowerShell 7 workbench skill for Codex**.
+`stark-codex-windows-workbench` is a **native Windows PowerShell 7 workbench skill for Codex**.
 
 It gives agents one direct entrypoint to:
 
@@ -33,7 +33,7 @@ Default path: **Core + Agent**. No WSL. No auth automation. No secret writes.
 
 | | Before | After |
 |---|---|---|
-| Entry | Many ad-hoc scripts and chat instructions | Call `codex-windows-workbench` / `/codex-windows-workbench` |
+| Entry | Many ad-hoc scripts and chat instructions | Call `stark-codex-windows-workbench` / `/stark-codex-windows-workbench` |
 | Host model | WSL/bash leakage, mixed shells | Native Windows + PowerShell 7 only |
 | Change safety | Install first, discover impact later | `-WhatIf` preview, then explicit Apply |
 | Baseline | Inconsistent machine-specific tool soup | Managed Core + Agent default |
@@ -58,7 +58,7 @@ call skill
 
 | Step | What runs | Machine effect | What you see |
 |------|-----------|----------------|--------------|
-| 1. Call skill | `codex-windows-workbench` / `/codex-windows-workbench` | No machine change yet | Agent loads skill instructions |
+| 1. Call skill | `stark-codex-windows-workbench` / `/stark-codex-windows-workbench` | No machine change yet | Agent loads skill instructions |
 | 2. Preflight | `Preflight-PwshAgentWindows.ps1 -Json` | Read-only checks | Host/tool blockers and warnings |
 | 3. Preview | `Initialize-...ps1 -WhatIf -Json` | **No changes** (`Changed=false`) | `Selected`, `Phases`, `Actions`, `SafetyHooks` |
 | 4. Confirm | Agent asks you | No changes | Clear Core + Agent impact summary |
@@ -143,26 +143,26 @@ npx: available
 1. Discover skill from repo/package:
 
 ```bash
-npx --yes skills add yuanyuanyuan/codex-windows-workbench --list -y
+npx --yes skills add yuanyuanyuan/stark-codex-windows-workbench --list -y
 ```
 
 Observed:
 
 ```text
 Found 1 skill
-codex-windows-workbench
+stark-codex-windows-workbench
 ```
 
 2. Install skill globally for Codex:
 
 ```bash
-npx --yes skills add yuanyuanyuan/codex-windows-workbench -g -y -s codex-windows-workbench -a codex --copy
+npx --yes skills add yuanyuanyuan/stark-codex-windows-workbench -g -y -s stark-codex-windows-workbench -a codex --copy
 ```
 
 Observed install target:
 
 ```text
-%USERPROFILE%\.agents\skills\codex-windows-workbench
+%USERPROFILE%\.agents\skills\stark-codex-windows-workbench
 SKILL.md = present
 scripts\Initialize-PwshAgentWindows.ps1 = present
 ```
@@ -248,7 +248,7 @@ pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify 
 
 | Check | Expected real result |
 |-------|----------------------|
-| Skill discoverable | `Found 1 skill: codex-windows-workbench` |
+| Skill discoverable | `Found 1 skill: stark-codex-windows-workbench` |
 | Skill installed | `SKILL.md` + `scripts/Initialize-...ps1` under user skill dir |
 | Preview safe | `-WhatIf` returns `Changed=false` |
 | Default selection | `Selected=["Core","Agent"]` only |
@@ -261,7 +261,7 @@ pwsh -NoLogo -NoProfile -File .\scripts\Initialize-PwshAgentWindows.ps1 -Verify 
 ### One-command UAT replay for agents
 
 ```text
-按 docs/install.md 安装 codex-windows-workbench；先 npx 安装 skill，再执行 -WhatIf -Json 预览 Core+Agent，把 Selected/Actions 报告给我确认后，才允许 -Confirm:$false Apply，最后跑 -Status/-Verify。
+按 docs/install.md 安装 stark-codex-windows-workbench；先 npx 安装 skill，再执行 -WhatIf -Json 预览 Core+Agent，把 Selected/Actions 报告给我确认后，才允许 -Confirm:$false Apply，最后跑 -Status/-Verify。
 ```
 
 Full raw notes: [docs/uat-real-install-configure.md](./docs/uat-real-install-configure.md)
@@ -271,7 +271,7 @@ Full raw notes: [docs/uat-real-install-configure.md](./docs/uat-real-install-con
 Copy this to your Agent:
 
 ```text
-帮我安装 codex-windows-workbench：https://raw.githubusercontent.com/yuanyuanyuan/codex-windows-workbench/master/docs/install.md
+帮我安装 stark-codex-windows-workbench：https://raw.githubusercontent.com/yuanyuanyuan/stark-codex-windows-workbench/master/docs/install.md
 ```
 
 Full agent install guide: [docs/install.md](./docs/install.md)
@@ -279,13 +279,13 @@ Full agent install guide: [docs/install.md](./docs/install.md)
 ### RedSkill
 
 ```text
-现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 codex-windows-workbench 技能。若已安装，则直接安装 codex-windows-workbench 技能。
+现在为你安装 Skill，先来检查是否已安装 Red Skill 商店，请根据 https://redskill.xiaohongshu.net/install.md 安装 RedSkill 商店，然后安装 stark-codex-windows-workbench 技能。若已安装，则直接安装 stark-codex-windows-workbench 技能。
 ```
 
 ### npx (Recommended)
 
 ```bash
-npx skills add yuanyuanyuan/codex-windows-workbench
+npx skills add yuanyuanyuan/stark-codex-windows-workbench
 ```
 
 ### Codex Plugin CLI
@@ -294,28 +294,28 @@ npx skills add yuanyuanyuan/codex-windows-workbench
 Use the Codex CLI in a terminal. This is not a chat `/plugin` slash command.
 
 ```bash
-codex plugin marketplace add yuanyuanyuan/codex-windows-workbench
-codex plugin add codex-windows-workbench@codex-windows-workbench
+codex plugin marketplace add yuanyuanyuan/stark-codex-windows-workbench
+codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench
 ```
 
 ### Manual (Git Clone)
 
 ```bash
 # Windows + Codex
-git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git %USERPROFILE%\.codex\skills\codex-windows-workbench
+git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git %USERPROFILE%\.codex\skills\stark-codex-windows-workbench
 
 # Windows + Claude Code
-git clone https://github.com/yuanyuanyuan/codex-windows-workbench.git %USERPROFILE%\.claude\skills\codex-windows-workbench
+git clone https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git %USERPROFILE%\.claude\skills\stark-codex-windows-workbench
 ```
 
 ## Use
 
 ```text
-codex-windows-workbench
+stark-codex-windows-workbench
 ```
 
 ```text
-/codex-windows-workbench
+/stark-codex-windows-workbench
 ```
 
 ## What it does
@@ -364,5 +364,6 @@ docs/
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+
 
 

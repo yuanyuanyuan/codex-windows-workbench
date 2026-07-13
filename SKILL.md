@@ -1,15 +1,15 @@
 ---
-name: codex-windows-workbench
+name: stark-codex-windows-workbench
 description: Maintain a native Windows PowerShell 7 workbench for Codex. Use when auditing, previewing, configuring, installing, verifying, or rolling back a Windows AI agent environment without WSL; default Core+Agent path with optional Developer, NativeBuild, Containers, Codex presence checks, and safety hooks.
 ---
 
-# Codex Windows Workbench
+# Stark Codex Windows Workbench
 
 ## Invocation
 
 ```text
-codex-windows-workbench
-/codex-windows-workbench
+stark-codex-windows-workbench
+/stark-codex-windows-workbench
 ```
 
 ## Role
@@ -81,4 +81,5 @@ Only when explicitly requested:
 - `references/contracts.md`
 - `docs/windows-agent-env.md`
 - `CONTEXT.md`
+
 

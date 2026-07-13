@@ -1,13 +1,13 @@
 {
-  "name": "codex-windows-workbench",
+  "name": "stark-codex-windows-workbench",
   "version": "0.1.0",
   "description": "Maintain a native Windows PowerShell 7 workbench for Codex",
   "author": {
     "name": "yuanyuanyuan",
     "url": "https://github.com/yuanyuanyuan"
   },
-  "homepage": "https://github.com/yuanyuanyuan/codex-windows-workbench",
-  "repository": "https://github.com/yuanyuanyuan/codex-windows-workbench",
+  "homepage": "https://github.com/yuanyuanyuan/stark-codex-windows-workbench",
+  "repository": "https://github.com/yuanyuanyuan/stark-codex-windows-workbench",
   "license": "MIT",
   "keywords": [
     "skills",
@@ -17,7 +17,7 @@
     "workbench"
   ],
   "interface": {
-    "displayName": "Codex Windows Workbench",
+    "displayName": "Stark Codex Windows Workbench",
     "shortDescription": "Native Windows PowerShell 7 Codex workbench",
     "longDescription": "Audit, preview, apply, verify, and roll back a native Windows PowerShell 7 Codex workbench. Default path is Core + Agent without WSL.",
     "developerName": "yuanyuanyuan",
@@ -26,9 +26,10 @@
       "Interactive",
       "Write"
     ],
-    "websiteURL": "https://github.com/yuanyuanyuan/codex-windows-workbench",
+    "websiteURL": "https://github.com/yuanyuanyuan/stark-codex-windows-workbench",
     "defaultPrompt": [
-      "codex-windows-workbench"
+      "stark-codex-windows-workbench"
     ]
   }
 }
+

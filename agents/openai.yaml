@@ -1,4 +1,5 @@
 interface:
-  display_name: "Codex Windows Workbench"
+  display_name: "Stark Codex Windows Workbench"
   short_description: "Maintain a native Windows PowerShell 7 workbench for Codex"
-  default_prompt: "codex-windows-workbench"
+  default_prompt: "stark-codex-windows-workbench"
+
