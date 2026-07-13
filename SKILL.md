@@ -67,3 +67,6 @@ Only when explicitly requested:
 - `references/contracts.md`
 - `docs/windows-agent-env.md`
 - `CONTEXT.md`
+
+- `docs/install.md` — agent-executable install guide
+

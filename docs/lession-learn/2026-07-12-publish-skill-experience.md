@@ -197,3 +197,13 @@ git clone https://github.com/<owner>/<repo>.git %USERPROFILE%\.codex\skills\<ski
 
 - 保持**根目录 skill**（Codex skill-creator 默认）
 - 不为了 Claude monorepo 风格强行迁到 `skills/<name>/`，避免破坏 `npx` 已验证路径与现有脚本相对路径
+
+## Agent 可执行安装文档（2026-07-13）
+
+新增 `docs/install.md`，模式参考 Agent Reach：
+
+- 人类入口一句话：
+  `帮我安装 codex-windows-workbench：https://raw.githubusercontent.com/yuanyuanyuan/codex-windows-workbench/master/docs/install.md`
+- 文档主体写给 AI Agent：目标、边界、目录规则、分步命令、安全模式、失败处理、验收模板
+- README 中英都挂上 raw install.md 入口
+- 这样不依赖用户先读 README，也能让 Agent 按文档完成 skill 安装与可选工作台配置

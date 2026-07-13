@@ -9,6 +9,14 @@
 
 ## 安装
 
+把下面这段发给你的 Agent：
+
+```text
+帮我安装 codex-windows-workbench：https://raw.githubusercontent.com/yuanyuanyuan/codex-windows-workbench/master/docs/install.md
+```
+
+完整 Agent 安装文档：[docs/install.md](./docs/install.md)
+
 ### RedSkill
 
 把下面这段发给你的 Agent：

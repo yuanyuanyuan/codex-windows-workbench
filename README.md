@@ -9,6 +9,14 @@ Default path: **Core + Agent**. No WSL.
 
 ## Install
 
+Copy this to your Agent:
+
+```text
+帮我安装 codex-windows-workbench：https://raw.githubusercontent.com/yuanyuanyuan/codex-windows-workbench/master/docs/install.md
+```
+
+Full agent install guide: [docs/install.md](./docs/install.md)
+
 ### RedSkill
 
 Copy this to your Agent:
