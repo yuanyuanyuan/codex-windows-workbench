@@ -190,6 +190,60 @@ $paths | Where-Object { Test-Path $_ } | ForEach-Object {
 - no Developer / NativeBuild / Containers unless requested
 - no package uninstall on rollback
 
+## Complete Installation and Configuration Inventory
+
+The tables below are the complete inventory for the current initializer. Items marked **default** run with Core + Agent; items marked **optional** run only when their switch (or `-Full`) is selected. Existing packages are skipped where the underlying package manager reports them as installed.
+
+### Default: Core packages
+
+| Manager | Package / ID | Purpose |
+|---|---|---|
+| winget configure | `Microsoft.PowerShell` | PowerShell 7 |
+| winget configure | `Git.Git` | Git for Windows |
+| winget configure | `GitHub.cli` | GitHub CLI (`gh`) |
+| winget configure | `Microsoft.WindowsTerminal` | Windows Terminal |
+| winget configure | `Microsoft.VisualStudioCode` | Visual Studio Code |
+| winget configure | `Microsoft.VCRedist.2015+.x64` | VC++ runtime required by native tools and WinGet configuration |
+| winget configure | `OpenJS.NodeJS.LTS` | Node.js LTS for agent CLIs and JavaScript projects |
+| winget configure | `Python.Python.3.13` | Python 3.13 |
+| winget configure | `astral-sh.uv` | Python package and environment manager |
+| winget configure | `Docker.DockerCLI` | Docker client only; no backend is configured |
+| winget configure | `Kubernetes.kubectl` | Kubernetes CLI |
+| Scoop (bootstrap if missing) | Scoop | User-level package manager for small CLI tools |
+| Scoop | `ripgrep`, `fd`, `fzf` | Search, file discovery, and interactive filtering |
+| Scoop | `jq`, `yq` | JSON and YAML processing |
+| Scoop | `bat`, `delta` | File viewing and Git diffs |
+| Scoop | `7zip`, `zip`, `nuget` | Archives and NuGet CLI |
+
+### Default: Agent configuration
+
+| Category | Item | Effect |
+|---|---|---|
+| Managed files | `%USERPROFILE%\.config\pwsh-ai\pwsh-ai-agent-overlay.ps1` | Installs the PowerShell runtime overlay. |
+| Managed files | `%USERPROFILE%\.config\pwsh-ai\pwsh-ai-core.ps1` | Creates or extends the managed core-profile loader; an existing file is backed up before the loader is appended. |
+| Managed directories | `hooks`, `mcp`, `skills`, `commands`, `rules`, `agents` below `%USERPROFILE%\.config\pwsh-ai` | Creates empty managed locations for future local configuration; it does not install plugins, MCP servers, or credentials. |
+| Managed state | `%LOCALAPPDATA%\PwshAiAgent\state` | Records backups, hashes, and phase-completion state so managed settings can be rolled back safely. |
+| User environment | `GOPATH`, `GOPROXY`, `GOSUMDB` | Sets `%USERPROFILE%\go`, `https://proxy.golang.org,direct`, and `sum.golang.org`. |
+| User environment | `PYTHONIOENCODING`, `PYTHONUTF8`, `NO_PROXY` | Sets UTF-8 Python output and `localhost,127.0.0.1,::1`. |
+| Process overlay | Output encoding and PowerShell preferences | Uses UTF-8, plain output rendering, and suppressed progress for machine-readable agent subprocess output. |
+| Process overlay | PATH ordering | Adds existing Go, Scoop, WinGet Links, Codex, `.local\bin`, pnpm, and Python Scripts locations without duplicate entries. |
+| Process overlay | Proxy policy | Preserves existing `HTTP_PROXY`, `HTTPS_PROXY`, and `ALL_PROXY`; an optional local private overlay may supply machine-specific values. |
+
+The agent configuration never creates an auth token, MCP endpoint, or permission grant. It also does not install Codex: `-AgentClients` only probes the existing `codex` command and its version.
+
+### Optional workloads and configuration
+
+| Switch | Installs or configures |
+|---|---|
+| `-Developer` | winget: `GoLang.Go`, `Microsoft.DotNet.SDK.10`, `Kitware.CMake`, `Ninja-build.Ninja`, `Helm.Helm`, `Hashicorp.Terraform`; Scoop: `golangci-lint`, `air`; Go: `gopls`, `dlv`, `air`; current-user PowerShell modules: `Pester`, `PSScriptAnalyzer`, `Microsoft.PowerShell.PSResourceGet`. |
+| `-NativeBuild` | `Microsoft.VisualStudio.2022.BuildTools` with the MSVC and Windows SDK workloads, plus `Microsoft.VisualStudio.Locator` (`vswhere`). |
+| `-Containers` | `Docker.DockerDesktop`, then probes Docker client/server availability. It does not choose a Docker backend or configure WSL. |
+| `-AgentClients` | Probes the public Codex CLI location and `codex --version`; no installation, login, auth, MCP, or permission write. |
+| `-EnableSafetyHooks` | Copies `%USERPROFILE%\.config\pwsh-ai\hooks\dangerous-git.ps1`, which guards force-push, hard-reset, aggressive-clean, forced-checkout, amend, and interactive-rebase commands. |
+| `-Full` | Selects every optional workload above and enables the safety hook. |
+
+Rollback restores only the managed files and user environment values recorded in state. It deliberately leaves installed packages in place.
+
 ### Example preview output
 
 ```json

@@ -192,6 +192,60 @@ $paths | Where-Object { Test-Path $_ } | ForEach-Object {
 - 不启用 Developer / NativeBuild / Containers（除非你明确要求）
 - 回滚不会卸载软件包
 
+## 完整安装与配置清单
+
+下表列出当前初始化器的全部安装和配置项。标为**默认**的项目会随 Core + Agent 执行；标为**可选**的项目只会在指定对应开关（或 `-Full`）时执行。底层包管理器发现已安装的软件包时会跳过安装。
+
+### 默认：Core 软件包
+
+| 管理器 | 软件包 / ID | 用途 |
+|---|---|---|
+| winget configure | `Microsoft.PowerShell` | PowerShell 7 |
+| winget configure | `Git.Git` | Git for Windows |
+| winget configure | `GitHub.cli` | GitHub CLI（`gh`） |
+| winget configure | `Microsoft.WindowsTerminal` | Windows Terminal |
+| winget configure | `Microsoft.VisualStudioCode` | Visual Studio Code |
+| winget configure | `Microsoft.VCRedist.2015+.x64` | 原生工具和 WinGet 配置所需的 VC++ 运行库 |
+| winget configure | `OpenJS.NodeJS.LTS` | 用于 Agent CLI 和 JavaScript 项目的 Node.js LTS |
+| winget configure | `Python.Python.3.13` | Python 3.13 |
+| winget configure | `astral-sh.uv` | Python 包与虚拟环境管理器 |
+| winget configure | `Docker.DockerCLI` | 只安装 Docker 客户端，不配置后端 |
+| winget configure | `Kubernetes.kubectl` | Kubernetes CLI |
+| Scoop（缺失时 bootstrap） | Scoop | 面向小型 CLI 工具的用户级包管理器 |
+| Scoop | `ripgrep`、`fd`、`fzf` | 搜索、文件发现和交互式筛选 |
+| Scoop | `jq`、`yq` | JSON 与 YAML 处理 |
+| Scoop | `bat`、`delta` | 文件查看和 Git diff |
+| Scoop | `7zip`、`zip`、`nuget` | 压缩归档和 NuGet CLI |
+
+### 默认：Agent 配置
+
+| 类别 | 项目 | 效果 |
+|---|---|---|
+| 托管文件 | `%USERPROFILE%\.config\pwsh-ai\pwsh-ai-agent-overlay.ps1` | 安装 PowerShell 运行时 overlay。 |
+| 托管文件 | `%USERPROFILE%\.config\pwsh-ai\pwsh-ai-core.ps1` | 创建或扩展受管 core profile loader；已有文件会在追加 loader 前备份。 |
+| 托管目录 | `%USERPROFILE%\.config\pwsh-ai` 下的 `hooks`、`mcp`、`skills`、`commands`、`rules`、`agents` | 创建供本地后续配置使用的空目录；不会安装插件、MCP server 或凭据。 |
+| 托管状态 | `%LOCALAPPDATA%\PwshAiAgent\state` | 保存备份、哈希和 phase 完成状态，以便安全回滚受管设置。 |
+| 用户环境变量 | `GOPATH`、`GOPROXY`、`GOSUMDB` | 设置为 `%USERPROFILE%\go`、`https://proxy.golang.org,direct`、`sum.golang.org`。 |
+| 用户环境变量 | `PYTHONIOENCODING`、`PYTHONUTF8`、`NO_PROXY` | 设置 Python UTF-8 输出和 `localhost,127.0.0.1,::1`。 |
+| 进程 overlay | 输出编码和 PowerShell 偏好 | 使用 UTF-8、纯文本输出渲染，并关闭进度显示，便于 Agent 子进程读取。 |
+| 进程 overlay | PATH 顺序 | 将已存在的 Go、Scoop、WinGet Links、Codex、`.local\bin`、pnpm 和 Python Scripts 路径加入 PATH，并去重。 |
+| 进程 overlay | 代理策略 | 保留已有的 `HTTP_PROXY`、`HTTPS_PROXY`、`ALL_PROXY`；可选的本地 private overlay 可提供机器特定值。 |
+
+Agent 配置不会创建认证 token、MCP endpoint 或权限授予，也不会安装 Codex。`-AgentClients` 只探测既有的 `codex` 命令和版本。
+
+### 可选工作负载与配置
+
+| 开关 | 会安装或配置什么 |
+|---|---|
+| `-Developer` | winget：`GoLang.Go`、`Microsoft.DotNet.SDK.10`、`Kitware.CMake`、`Ninja-build.Ninja`、`Helm.Helm`、`Hashicorp.Terraform`；Scoop：`golangci-lint`、`air`；Go：`gopls`、`dlv`、`air`；当前用户 PowerShell 模块：`Pester`、`PSScriptAnalyzer`、`Microsoft.PowerShell.PSResourceGet`。 |
+| `-NativeBuild` | 带 MSVC 和 Windows SDK 工作负载的 `Microsoft.VisualStudio.2022.BuildTools`，以及 `Microsoft.VisualStudio.Locator`（`vswhere`）。 |
+| `-Containers` | `Docker.DockerDesktop`，随后探测 Docker 客户端/服务端可用性；不会选择 Docker 后端，也不会配置 WSL。 |
+| `-AgentClients` | 探测公开 Codex CLI 的位置与 `codex --version`；不安装、不登录、不写认证、MCP 或权限。 |
+| `-EnableSafetyHooks` | 复制 `%USERPROFILE%\.config\pwsh-ai\hooks\dangerous-git.ps1`，防护 force push、hard reset、aggressive clean、forced checkout、amend 和 interactive rebase。 |
+| `-Full` | 选择以上全部可选工作负载，并启用安全 hook。 |
+
+回滚只恢复状态文件中记录的托管文件和用户环境变量，刻意保留已安装的软件包。
+
 ### 预览输出示例
 
 ```json
