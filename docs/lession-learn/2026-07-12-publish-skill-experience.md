@@ -14,7 +14,7 @@
 
 ## 一句话
 
-发布 skill 时，先把**名字、安装、调用、边界、真实效果**五件事对齐；脚本再强，文档身份错了也等于没发布成功。
+发布 skill 时，先把**名字、安装、调用、卸载、边界、真实效果**对齐，README 还要按价值优先排序；脚本再强，文档身份错了也等于没发布成功。
 
 ## 背景与目标
 
@@ -56,17 +56,19 @@ stark-codex-windows-workbench
 
 ### 2. 这是 Skill 包，不是安装器说明书
 
-README 主角必须是 skill：
+README 主角必须是 skill，并且按**价值优先**的阅读结构写：
 
-- 痛点
-- 解决什么
-- Before / After
-- 执行过程与效果
-- 真实 UAT
-- 安装
-- 调用
+1. 是干什么的
+2. 解决了什么问题
+3. 为什么要用
+4. 用户场景对比（Before / After）
+5. 怎么安装
+6. 怎么使用
+7. 怎么卸载
+8. 执行效果 / 约束 / UAT 证据（细节下沉）
 
-不要把仓库写成“Windows bootstrap scripts dump”。
+不要把仓库写成“Windows bootstrap scripts dump”。  
+不要把 UAT 长证据和执行细节压在安装/使用之前。
 
 ### 3. 安装要多通道，且命令必须可复制
 
@@ -297,7 +299,9 @@ codex plugin add stark-codex-windows-workbench@stark-codex-windows-workbench
 发布前逐项确认：
 
 1. Skill 名、仓库名、plugin 名是否一致
-2. README 中英是否都先写痛点 / 解决 / Before-After / 执行效果 / UAT
+2. README 中英是否按价值优先排序：是什么 / 解决什么 / 为什么用 / 场景对比 / 安装 / 使用 / 卸载
+2b. 执行效果、约束、UAT 是否放在主操作路径之后，而不是压在安装前面
+2c. 是否同时提供卸载步骤（含旧名清理）
 3. 安装命令是否可直接复制，且覆盖 RedSkill / npx / plugin / clone
 4. 使用区是否只有直接调用，没有触发词废话
 5. `SKILL.md` frontmatter 是否干净、可发现
@@ -327,16 +331,21 @@ plugin name  = <same as skill>
 stark-codex-windows-workbench
 ```
 
-### README 顶部骨架
+### README 阅读结构骨架（价值优先）
 
 ```markdown
-## 痛点
-## 这个 Skill 解决什么
-## Before / After
+## 这个 Skill 是干什么的
+## 解决了什么问题
+## 为什么要用
+## 用户场景对比（Before / After）
+## 安装
+## 使用
+## 卸载
 ## 执行过程与效果
-## UAT：真实安装与配置过程
-## Install
-## Use
+## 约束
+## UAT 证据
+## 包结构
+## 许可证
 ```
 
 ### 安装区最小骨架
@@ -415,6 +424,140 @@ Acceptance report template
 | 本经验总结 | `docs/lession-learn/2026-07-12-publish-skill-experience.md` |
 | 公开仓库 | https://github.com/yuanyuanyuan/stark-codex-windows-workbench |
 
+
+## 后续更新经验（2026-07-13 续）
+
+### 坑 11：本地实测与 UAT 文档“看起来不一致”
+
+现象：
+
+- 用户调用后，Agent 读到的是：
+  `~\.agents\skills\codex-windows-workbench`
+- skill frontmatter 仍是旧名 `codex-windows-workbench`
+- 但 WhatIf 流程、Selected=Core+Agent、SafetyHooks=false 与文档一致
+
+结论：
+
+- **行为一致是正常的**
+- **名字/路径不一致也正常**
+- 原因是本机还装着改名前的旧 skill 副本，仓库改名不会自动更新用户 skill 目录
+
+修复动作：
+
+1. 用新名重装 skill
+2. 删除旧目录：
+   - `~\.agents\skills\codex-windows-workbench`
+   - 以及历史旧名 `windows-pwsh-agent-workbench`
+3. README 卸载区必须覆盖旧名清理，避免用户一直跑旧副本
+
+经验：
+
+- UAT 记录的是“某次安装后的状态”，不是“用户机器永远自动同步”
+- 公开发布后 rename，必须同步提供**重装 + 卸载旧名**指引
+- 判断“测得对不对”时，先核验 skill 实际路径与 `SKILL.md` 的 `name`
+
+### 坑 12：README 只有安装/使用，没有卸载
+
+现象：用户装上旧 skill 后不知道怎么清，继续被旧名劫持。
+
+修复：
+
+中英文 README 增加 `Uninstall / 卸载`：
+
+1. 可选先 `-Rollback` 回滚受管设置
+2. 删除 agents/codex/claude skill 目录
+3. 清理历史旧名目录
+4. 可选移除 Codex plugin 条目
+5. 明确卸载**不会**卸载 winget/scoop 包、不会清无关 Profile、不会退出登录
+
+经验：
+
+- 公开 skill 的完整生命周期是：安装 → 使用 → 卸载
+- 卸载文档要同时覆盖“当前名”和“历史旧名”
+
+### 坑 13：README 信息都有，但阅读结构不对
+
+现象：痛点、解决、UAT、安装、使用都写了，但顺序像“证据堆叠”，用户不能 30 秒看懂这是什么。
+
+错误倾向：
+
+1. 一上来长 UAT
+2. 执行细节压过安装/使用
+3. “能做什么”和“是什么/为什么用”混在一起
+
+修复后的主阅读路径：
+
+```text
+是什么
+  -> 解决什么
+  -> 为什么用
+  -> 场景对比
+  -> 安装
+  -> 使用
+  -> 卸载
+  -> 执行效果 / 约束 / UAT 证据
+```
+
+经验：
+
+- README 先卖清价值和操作路径，再放证明材料
+- UAT 很重要，但应作为证据区，不应挡住“怎么装/怎么用”
+- 中英文 README 必须同步重排，不能一边改、一边旧结构残留
+
+### 坑 14：文档插入时的文件写入事故
+
+现象：用字符串整段替换/正则插入 README 时，一度把正文重复污染，出现 `Test-Path # Stark Codex...` 之类拼接损坏。
+
+修复：
+
+- 立即 `git checkout -- README*.md` 回滚
+- 改用“按行定位 heading，再插入 block”的方式重写
+- 插入后立刻检查：
+  - heading 列表是否唯一
+  - 文件行数是否合理
+  - 是否出现正文重复片段
+
+经验：
+
+- 对已有长 README 做结构性插入时，优先整文件重写或按行插入
+- 避免在复杂正则替换里拼接大段 markdown
+- 任何文档结构改动后，先做 heading 扫描再 commit
+
+## README 价值优先检查清单
+
+发布/改版 README 时额外确认：
+
+1. 前 1 屏是否说清：是什么、解决什么、为什么用
+2. 场景对比是否紧跟“为什么用”
+3. 安装 / 使用 / 卸载是否连在一起，形成完整动作闭环
+4. 执行细节、约束、UAT 是否放在动作闭环之后
+5. 卸载是否覆盖当前名 + 历史旧名
+6. 中英文结构是否镜像一致
+7. 用户本地若仍装旧名，文档是否提示重装/清理
+
+## 本地旧副本排查口令
+
+当用户反馈“我测到的和 UAT 不一样”时，先跑：
+
+```powershell
+@(
+  "$env:USERPROFILE\.agents\skills\stark-codex-windows-workbench"
+  "$env:USERPROFILE\.agents\skills\codex-windows-workbench"
+  "$env:USERPROFILE\.codex\skills\stark-codex-windows-workbench"
+  "$env:USERPROFILE\.claude\skills\stark-codex-windows-workbench"
+) | ForEach-Object {
+  [pscustomobject]@{
+    Path = $_
+    Exists = Test-Path $_
+    SkillName = if (Test-Path (Join-Path $_ 'SKILL.md')) {
+      (Select-String -Path (Join-Path $_ 'SKILL.md') -Pattern '^name:\s*(.+)$').Matches.Groups[1].Value
+    } else { $null }
+  }
+}
+```
+
+若 `Exists=True` 但 `SkillName` 还是旧名，优先判定为**本地安装残留**，不是 skill 运行时回归。
+
 ## 结束语
 
 这次发布真正难的不是 PowerShell 脚本，而是把一个本地工作台工程，收成一个：
@@ -427,4 +570,11 @@ Acceptance report template
 
 的公开 skill。
 
-以后再发 skill，直接按本文检查清单走，可以少踩一轮身份与分发坑。
+并且 README 要让人在一屏内看懂：
+
+- 是什么
+- 解决什么
+- 为什么用
+- 怎么装 / 怎么用 / 怎么卸
+
+以后再发 skill，直接按本文检查清单走，可以少踩一轮身份、分发和文档结构坑。
