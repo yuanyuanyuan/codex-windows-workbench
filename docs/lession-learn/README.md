@@ -4,7 +4,8 @@
 
 | 文档 | 内容 |
 |---|---|
-| [2026-07-12-publish-skill-experience.md](./2026-07-12-publish-skill-experience.md) | `stark-codex-windows-workbench` 公开发布完整复盘：命名、多通道安装、直接调用、Agent install.md、plugin CLI 纠错、UAT、回归门禁、检查清单 |
+| [skill-publish-lessons-general-and-windows.md](./skill-publish-lessons-general-and-windows.md) | **提炼版**：通用 skill 发布原则 vs Windows 环境特殊经验、检查清单、决策表 |
+| [2026-07-12-publish-skill-experience.md](./2026-07-12-publish-skill-experience.md) | 完整复盘原文：命名、多通道安装、直接调用、Agent install.md、plugin CLI 纠错、UAT、回归门禁、坑 1–17 时间线 |
 
 相关 UAT 回归资产：
 

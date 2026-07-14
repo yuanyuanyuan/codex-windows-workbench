@@ -1,5 +1,7 @@
 # 发布 Skill 经验总结
 
+> 提炼版（通用 vs Windows 分离）：[skill-publish-lessons-general-and-windows.md](./skill-publish-lessons-general-and-windows.md)
+
 日期：2026-07-12 ~ 2026-07-13  
 最终身份：
 
@@ -670,4 +672,5 @@ pwsh -NoLogo -NoProfile -File .\tests\uat\Invoke-UatRegression.ps1 -IncludeNetwo
 
 - 发现一次 false-pass，就永久加一条会抓住它的 UAT case
 - CI 默认跑 Tier A；真实装包 Apply 永不默认进 CI
+
 
