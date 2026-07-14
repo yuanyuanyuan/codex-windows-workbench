@@ -36,3 +36,7 @@ node_modules/
 .claude/
 .codex/
 skills-lock.json
+
+# Local security audit artifacts
+.gstack/
+

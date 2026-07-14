@@ -5,6 +5,7 @@
 把下面这句话发给你的 AI Agent：
 
 ```text
+Install stark-codex-windows-workbench for me using the installation guide for release v0.1.2: https://github.com/yuanyuanyuan/stark-codex-windows-workbench/blob/v0.1.2/docs/install.md
 ```
 
 只要 skill、不要改机器配置（安全模式）：
@@ -22,6 +23,7 @@
 源仓库：
 
 ```text
+https://github.com/yuanyuanyuan/stark-codex-windows-workbench
 ```
 
 ---
@@ -31,6 +33,8 @@
 ### Goal
 
 Install the `stark-codex-windows-workbench` skill, then optionally configure a native Windows PowerShell 7 Codex workbench.
+
+Packaged skill folder in this repository: `skills/stark-codex-windows-workbench/` (this folder is what `npx skills` installs, not the whole repo root).
 
 ### Execution effects (what the user should expect)
 
@@ -133,6 +137,7 @@ npx skills add yuanyuanyuan/stark-codex-windows-workbench
 Codex-only host:
 
 ```powershell
+npx skills add yuanyuanyuan/stark-codex-windows-workbench
 ```
 
 Expected path:
@@ -144,7 +149,7 @@ Expected path:
 #### Option B — Manual Git Clone
 
 ```powershell
-git clone --depth 1 --branch v0.1.1 https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:TEMP\stark-codex-windows-workbench
+git clone --depth 1 --branch v0.1.2 https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:TEMP\stark-codex-windows-workbench
 Copy-Item -Recurse -Force $env:TEMP\stark-codex-windows-workbench\skills\stark-codex-windows-workbench $env:USERPROFILE\.codex\skills\stark-codex-windows-workbench
 ```
 

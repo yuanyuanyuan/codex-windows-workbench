@@ -54,6 +54,48 @@ foreach ($relativePath in $docsToCheck) {
     }
 }
 
+# High-signal secret / personal-data content scan for public packaging hygiene.
+$denyPatterns = @(
+    [pscustomobject]@{ Name = 'AWS access key id'; Regex = 'AKIA[0-9A-Z]{16}' }
+    [pscustomobject]@{ Name = 'GitHub token'; Regex = 'gh[po]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}' }
+    [pscustomobject]@{ Name = 'Slack token'; Regex = 'xox[baprs]-[A-Za-z0-9-]{10,}' }
+    [pscustomobject]@{ Name = 'Stripe live key'; Regex = 'sk_live_[A-Za-z0-9]{20,}' }
+    [pscustomobject]@{ Name = 'Anthropic API key'; Regex = 'sk-ant-[A-Za-z0-9\-_]{20,}' }
+    [pscustomobject]@{ Name = 'Private key block'; Regex = '-----BEGIN (?:RSA |OPENSSH |EC |DSA )?PRIVATE KEY-----' }
+    [pscustomobject]@{ Name = 'Basic-auth URL credential'; Regex = '://[^/\s"''`:]+:[^/\s"''`@]+@' }
+    [pscustomobject]@{ Name = 'Absolute Windows user path'; Regex = '(?i)C:\\Users\\(?!Public\\|Everyone\\|<|%|用户名|username|your[_-]?name|xxx|example)[^\s\\/:"<>|]+\\' }
+)
+
+$scanRoots = @(
+    (Join-Path $repoRoot 'skills')
+    (Join-Path $repoRoot '.github')
+    (Join-Path $repoRoot 'tests')
+    (Join-Path $repoRoot '.codex-plugin')
+)
+$scanFiles = [System.Collections.Generic.List[string]]::new()
+foreach ($root in $scanRoots) {
+    if (Test-Path -LiteralPath $root) {
+        Get-ChildItem -LiteralPath $root -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Extension -match '\.(ps1|psm1|psd1|yml|yaml|json|md|winget|txt|xml)$' -or $_.Name -in @('CODEOWNERS','LICENSE') } |
+            ForEach-Object { $scanFiles.Add($_.FullName) | Out-Null }
+    }
+}
+foreach ($relativePath in @('package.json', 'AGENTS.md', 'SECURITY.md', 'CHANGELOG.md')) {
+    $path = Join-Path $repoRoot $relativePath
+    if (Test-Path -LiteralPath $path) { $scanFiles.Add($path) | Out-Null }
+}
+
+foreach ($file in ($scanFiles | Select-Object -Unique)) {
+    $content = Get-Content -LiteralPath $file -Raw -ErrorAction SilentlyContinue
+    if ([string]::IsNullOrEmpty($content)) { continue }
+    foreach ($pattern in $denyPatterns) {
+        if ($content -match $pattern.Regex) {
+            $rel = $file.Substring($repoRoot.Length).TrimStart('\', '/')
+            throw "Sensitive content scan failed ($($pattern.Name)) in $rel"
+        }
+    }
+}
+
 if ($RequireEvidence) {
     $evidencePath = Join-Path $repoRoot "docs\uat\results\v$Version-release-uat.md"
     if (-not (Test-Path -LiteralPath $evidencePath)) {

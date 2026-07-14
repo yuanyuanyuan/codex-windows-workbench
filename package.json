@@ -1,6 +1,6 @@
 {
   "name": "stark-codex-windows-workbench",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Native Windows PowerShell 7 workbench skill for Codex",
   "license": "MIT",
   "repository": {
@@ -15,4 +15,3 @@
     "workbench"
   ]
 }
-

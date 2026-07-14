@@ -18,8 +18,11 @@ concurrency:
 jobs:
   publish:
     runs-on: windows-latest
+    env:
+      # Pass version only via env to avoid script injection from workflow inputs.
+      RELEASE_VERSION: ${{ inputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: master
           fetch-depth: 0
@@ -28,10 +31,13 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          if ($env:RELEASE_VERSION -notmatch '^\d+\.\d+\.\d+$') {
+            throw "RELEASE_VERSION must be numeric X.Y.Z; got '$($env:RELEASE_VERSION)'."
+          }
           if (git status --porcelain) { throw 'Release source must be clean.' }
           $masterCommit = (git rev-parse origin/master).Trim()
           if ($env:GITHUB_SHA -ne $masterCommit) { throw 'Release must run from the current master commit.' }
-          $tagRef = git ls-remote --tags origin "refs/tags/v${{ inputs.version }}"
+          $tagRef = git ls-remote --tags origin ("refs/tags/v{0}" -f $env:RELEASE_VERSION)
           if ($LASTEXITCODE -ne 0) { throw 'Unable to check whether the release tag already exists.' }
           if ($tagRef) { throw 'Release tag already exists.' }
 
@@ -67,7 +73,9 @@ jobs:
 
       - name: Run release policy gate
         shell: pwsh
-        run: pwsh -NoLogo -NoProfile -File .\tests\release\Test-ReleaseGate.ps1 -Version '${{ inputs.version }}' -RequireEvidence
+        run: |
+          $ErrorActionPreference = 'Stop'
+          pwsh -NoLogo -NoProfile -File .\tests\release\Test-ReleaseGate.ps1 -Version $env:RELEASE_VERSION -RequireEvidence
 
       - name: Create immutable tag and release
         shell: pwsh
@@ -75,9 +83,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $tag = 'v${{ inputs.version }}'
+          if ($env:RELEASE_VERSION -notmatch '^\d+\.\d+\.\d+$') {
+            throw "RELEASE_VERSION must be numeric X.Y.Z; got '$($env:RELEASE_VERSION)'."
+          }
+          $tag = 'v' + $env:RELEASE_VERSION
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git tag -a $tag -m "stark-codex-windows-workbench $tag"
           git push origin $tag
-          gh release create $tag --target $env:GITHUB_SHA --title "stark-codex-windows-workbench $tag" --generate-notes
+          gh release create $tag --target $env:GITHUB_SHA --title ("stark-codex-windows-workbench {0}" -f $tag) --generate-notes

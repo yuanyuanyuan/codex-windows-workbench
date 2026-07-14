@@ -338,6 +338,8 @@ function Get-ImpactSummary {
     $lines.Add('  - WSL / bash / apt / brew') | Out-Null
     $lines.Add('  - Codex auto-login or token/MCP secret writes') | Out-Null
     $lines.Add('  - Uninstall packages on rollback') | Out-Null
+    $lines.Add('Residual supply-chain risk:') | Out-Null
+    $lines.Add('  - Scoop bootstrap is pin+hash verified; later scoop/winget/go/PS modules may still resolve floating latest versions') | Out-Null
     if ($notSelected -contains 'Developer') { $lines.Add('  - Developer workload') | Out-Null }
     if ($notSelected -contains 'NativeBuild') { $lines.Add('  - NativeBuild workload') | Out-Null }
     if ($notSelected -contains 'Containers') { $lines.Add('  - Containers workload') | Out-Null }
