@@ -13,6 +13,8 @@ These rules govern every public release of `stark-codex-windows-workbench`. A re
 ## Supply Chain And Provenance
 
 - Every externally downloaded executable script must be represented by a reviewable source version or commit and SHA-256 in the packaged integrity manifest. The runtime must verify the hash before execution.
+- Release gate must fail on high-signal secrets, private-key blocks, basic-auth URLs, and absolute personal Windows user paths in package-facing files.
+- GitHub Actions must pin third-party and first-party actions to full commit SHAs. Release workflow inputs must enter scripts only through environment variables, never via expression interpolation inside `run:` bodies.
 - A public release must use an immutable `vX.Y.Z` tag. User-facing commands and release notes must point to that tag or its commit SHA, never `master` or another moving branch.
 - `package.json`, `.codex-plugin/plugin.json`, the release tag, and the top `CHANGELOG.md` heading must carry the same version.
 - `SECURITY.md` must remain present. Vulnerabilities are reported through GitHub private vulnerability reporting, never public issues.
@@ -43,11 +45,15 @@ The evidence must name the OS version, PowerShell version, test date, tested sou
 
 ## Release Procedure
 
-1. Implement and review the release changes, then update the version and changelog.
+1. Implement the release changes, then update the version and changelog.
 2. Run Tier A locally. Run Tier B locally after packaging or installation changes.
 3. Run the required current-host and upgrade UATs, then commit the sanitized versioned evidence. Record any untested fresh-machine coverage as a limitation.
-4. Dispatch `Release` from `master` with the numeric version. The workflow validates all gates, creates `vX.Y.Z`, and creates the GitHub Release from that tag.
-5. Verify the published release links only to immutable sources and contains supported channels, consent boundaries, rollback limitation, privacy boundary, and security-reporting link.
+4. One-click publish (preferred):
+   `pwsh -NoLogo -NoProfile -File .\tests\release\Publish-Release.ps1`
+   This merges the release branch if needed, dispatches the Release workflow, and waits for the tag/GitHub Release.
+5. Alternative: merge to `master` with the versioned evidence. The Release workflow also auto-runs on `master` pushes that change release-relevant files and will publish when the tag does not already exist.
+6. Manual fallback: dispatch `Release` from `master` with the numeric version.
+7. Verify the published release links only to immutable sources and contains supported channels, consent boundaries, rollback limitation, privacy boundary, and security-reporting link.
 
 ## Stop Conditions
 

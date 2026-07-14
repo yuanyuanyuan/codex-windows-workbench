@@ -79,7 +79,7 @@ call skill
 ### One-line for agents
 
 ```text
-Install stark-codex-windows-workbench for me using the installation guide for release v0.1.1: https://github.com/yuanyuanyuan/stark-codex-windows-workbench/blob/v0.1.1/docs/install.md
+Install stark-codex-windows-workbench for me using the installation guide for release v0.1.2: https://github.com/yuanyuanyuan/stark-codex-windows-workbench/blob/v0.1.2/docs/install.md
 ```
 
 Full agent install guide: [docs/install.md](./docs/install.md)
@@ -95,7 +95,7 @@ npx skills add yuanyuanyuan/stark-codex-windows-workbench
 `npx skills` installs the skill folder under `skills/stark-codex-windows-workbench/` (not the whole repo root).
 
 ```powershell
-git clone --depth 1 --branch v0.1.1 https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:TEMP\stark-codex-windows-workbench
+git clone --depth 1 --branch v0.1.2 https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:TEMP\stark-codex-windows-workbench
 Copy-Item -Recurse -Force $env:TEMP\stark-codex-windows-workbench\skills\stark-codex-windows-workbench $env:USERPROFILE\.codex\skills\stark-codex-windows-workbench
 ```
 

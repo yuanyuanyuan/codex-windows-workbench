@@ -44,13 +44,18 @@ function Write-ProgressLine {
     )
     $stamp = (Get-Date).ToString('HH:mm:ss')
     $line = "[$stamp][$Level] $Message"
-    # Always show human-readable progress, including under -Json.
-    # Write to information stream so JSON parsers can still extract the final object from stdout.
-    Write-Host $line
+    # Under -Json, keep stdout pure for automation parsers (CI, UAT, one-click publish).
+    if ($Json) {
+        Write-Information $line -InformationAction Continue
+    } else {
+        Write-Host $line
+    }
 }
 
 function Write-HumanSummary {
     param([Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$Lines)
+    # Human summary is already included in JSON reports (Summary/Impact).
+    if ($Json) { return }
     Write-Host ''
     Write-Host '======== Workbench Summary ========'
     foreach ($line in @($Lines)) {

@@ -4,9 +4,20 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Numeric version without the v prefix (for example 0.1.1)
-        required: true
+        description: Numeric version without the v prefix (for example 0.1.2). Leave empty on push to auto-detect from package.json.
+        required: false
         type: string
+        default: ''
+  push:
+    branches:
+      - master
+    paths:
+      - 'package.json'
+      - '.codex-plugin/plugin.json'
+      - 'docs/uat/results/**'
+      - 'CHANGELOG.md'
+      - 'skills/**'
+      - '.github/workflows/release.yml'
 
 permissions:
   contents: write
@@ -18,24 +29,61 @@ concurrency:
 jobs:
   publish:
     runs-on: windows-latest
+    env:
+      # Pass version only via env to avoid script injection from workflow inputs.
+      RELEASE_VERSION_INPUT: ${{ inputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: master
           fetch-depth: 0
 
-      - name: Validate release source
+      - name: Resolve release version
         shell: pwsh
+        id: version
         run: |
           $ErrorActionPreference = 'Stop'
+          $inputVersion = "$env:RELEASE_VERSION_INPUT".Trim()
+          $package = Get-Content -LiteralPath package.json -Raw | ConvertFrom-Json
+          $version = if ($inputVersion) { $inputVersion } else { [string]$package.version }
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw "Resolved version must be numeric X.Y.Z; got '$version'."
+          }
+          if ($package.version -ne $version) {
+            throw "package.json version '$($package.version)' does not match requested '$version'."
+          }
+          $tag = "v$version"
+          $existing = git ls-remote --tags origin "refs/tags/$tag"
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to check whether the release tag already exists.' }
+          if ($existing) {
+            Write-Host "Tag $tag already exists; skipping publish."
+            "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+            return
+          }
+          "skip=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Publishing version $version"
+
+      - name: Validate release source
+        if: steps.version.outputs.skip != 'true'
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:RELEASE_VERSION -notmatch '^\d+\.\d+\.\d+$') {
+            throw "RELEASE_VERSION must be numeric X.Y.Z; got '$($env:RELEASE_VERSION)'."
+          }
           if (git status --porcelain) { throw 'Release source must be clean.' }
           $masterCommit = (git rev-parse origin/master).Trim()
           if ($env:GITHUB_SHA -ne $masterCommit) { throw 'Release must run from the current master commit.' }
-          $tagRef = git ls-remote --tags origin "refs/tags/v${{ inputs.version }}"
+          $tagRef = git ls-remote --tags origin ("refs/tags/v{0}" -f $env:RELEASE_VERSION)
           if ($LASTEXITCODE -ne 0) { throw 'Unable to check whether the release tag already exists.' }
           if ($tagRef) { throw 'Release tag already exists.' }
 
       - name: Parse PowerShell
+        if: steps.version.outputs.skip != 'true'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -46,6 +94,7 @@ jobs:
           }
 
       - name: Analyze PowerShell
+        if: steps.version.outputs.skip != 'true'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -66,18 +115,28 @@ jobs:
           if ($findings) { $findings | Format-Table -AutoSize; throw 'PSScriptAnalyzer findings block release.' }
 
       - name: Run release policy gate
+        if: steps.version.outputs.skip != 'true'
         shell: pwsh
-        run: pwsh -NoLogo -NoProfile -File .\tests\release\Test-ReleaseGate.ps1 -Version '${{ inputs.version }}' -RequireEvidence
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          pwsh -NoLogo -NoProfile -File .\tests\release\Test-ReleaseGate.ps1 -Version $env:RELEASE_VERSION -RequireEvidence
 
       - name: Create immutable tag and release
+        if: steps.version.outputs.skip != 'true'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $tag = 'v${{ inputs.version }}'
+          if ($env:RELEASE_VERSION -notmatch '^\d+\.\d+\.\d+$') {
+            throw "RELEASE_VERSION must be numeric X.Y.Z; got '$($env:RELEASE_VERSION)'."
+          }
+          $tag = 'v' + $env:RELEASE_VERSION
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git tag -a $tag -m "stark-codex-windows-workbench $tag"
           git push origin $tag
-          gh release create $tag --target $env:GITHUB_SHA --title "stark-codex-windows-workbench $tag" --generate-notes
+          gh release create $tag --target $env:GITHUB_SHA --title ("stark-codex-windows-workbench {0}" -f $tag) --generate-notes

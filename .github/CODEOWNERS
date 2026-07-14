@@ -1,0 +1,9 @@
+# Require review on high-risk paths when branch protection enables CODEOWNERS.
+* @yuanyuanyuan
+
+.github/ @yuanyuanyuan
+.github/workflows/ @yuanyuanyuan
+skills/stark-codex-windows-workbench/scripts/ @yuanyuanyuan
+skills/stark-codex-windows-workbench/config/ @yuanyuanyuan
+tests/release/ @yuanyuanyuan
+rules/release/ @yuanyuanyuan

@@ -103,8 +103,20 @@ if ($ApplyUserEnvironment) {
     }
 
     $userEnvKey = 'HKCU:\Environment'
+    $proxyKeys = @('HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY')
     foreach ($entry in $userEnv.GetEnumerator()) {
-        if ($PSCmdlet.ShouldProcess("User env:$($entry.Key)", "Set $($entry.Value)")) {
+        $displayValue = if ($proxyKeys -contains $entry.Key) {
+            # Never print proxy credentials in WhatIf/ShouldProcess output.
+            try {
+                $uri = [Uri]$entry.Value
+                if ($uri.IsAbsoluteUri) { '{0}://{1}:{2}' -f $uri.Scheme, $uri.Host, $uri.Port } else { '***' }
+            } catch {
+                ($entry.Value -replace '://[^@/]+@', '://***@')
+            }
+        } else {
+            $entry.Value
+        }
+        if ($PSCmdlet.ShouldProcess("User env:$($entry.Key)", "Set $displayValue")) {
             New-ItemProperty -Path $userEnvKey -Name $entry.Key -Value $entry.Value -PropertyType String -Force | Out-Null
             Set-Item -Path "Env:$($entry.Key)" -Value $entry.Value
         }

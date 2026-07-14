@@ -79,7 +79,7 @@
 ### 给 Agent 的一句话
 
 ```text
-帮我安装 stark-codex-windows-workbench，使用 v0.1.1 的安装指南：https://github.com/yuanyuanyuan/stark-codex-windows-workbench/blob/v0.1.1/docs/install.md
+帮我安装 stark-codex-windows-workbench，使用 v0.1.2 的安装指南：https://github.com/yuanyuanyuan/stark-codex-windows-workbench/blob/v0.1.2/docs/install.md
 ```
 
 完整 Agent 安装文档：[docs/install.md](./docs/install.md)
@@ -95,7 +95,7 @@ npx skills add yuanyuanyuan/stark-codex-windows-workbench
 `npx skills` 安装的是 `skills/stark-codex-windows-workbench/` 这个 skill 目录，不是整个仓库根目录。
 
 ```powershell
-git clone --depth 1 --branch v0.1.1 https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:TEMP\stark-codex-windows-workbench
+git clone --depth 1 --branch v0.1.2 https://github.com/yuanyuanyuan/stark-codex-windows-workbench.git $env:TEMP\stark-codex-windows-workbench
 Copy-Item -Recurse -Force $env:TEMP\stark-codex-windows-workbench\skills\stark-codex-windows-workbench $env:USERPROFILE\.codex\skills\stark-codex-windows-workbench
 ```
 

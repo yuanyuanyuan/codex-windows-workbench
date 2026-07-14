@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.2 - 2026-07-14
+
+### Security
+
+- Pass Release workflow version only via environment variables (no expression interpolation in `run:` scripts).
+- Pin `actions/checkout` to a full commit SHA in CI and Release workflows.
+- Add `.github/CODEOWNERS` for workflows, installer scripts, release tests, and release rules.
+- Redact proxy credentials in `agent-env-doctor`, `Test-PwshAgentEnv`, and env-apply WhatIf output.
+- Extend `Test-ReleaseGate.ps1` with high-signal secret and absolute personal-path content scanning.
+- Document residual floating package-manager risk in install Impact summary.
+- Keep `-Json` stdout pure for CI/automation parsers.
+- Auto-run Release workflow on `master` when a new version is ready; add `tests/release/Publish-Release.ps1` one-click publisher.
+
 ## 0.1.1 - 2026-07-13
 
 ### Release governance

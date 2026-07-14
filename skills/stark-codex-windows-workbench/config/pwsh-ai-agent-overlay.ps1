@@ -4,7 +4,7 @@
 # Low-noise, deterministic, and safe to source repeatedly.
 # ============================================
 
-$script:PwshAiAgentOverlayVersion = '2026.07.12.2'
+$script:PwshAiAgentOverlayVersion = '2026.07.14.3'
 
 function Add-AgentPath {
     param(
@@ -73,7 +73,10 @@ Add-AgentPath -Path "$env:USERPROFILE\go\bin" -Prepend
 Add-AgentPath -Path "$env:USERPROFILE\scoop\shims" -Prepend
 Add-AgentPath -Path "$env:USERPROFILE\scoop\shims\busybox-tools" -Prepend
 Add-AgentPath -Path "$env:LOCALAPPDATA\Microsoft\WinGet\Links" -Prepend
-Add-AgentPath -Path "$env:LOCALAPPDATA\OpenAI\Codex\bin" -Prepend
+# Prefer persistent npm global CLI; desktop OpenAI bin is fallback only.
+# Same authority policy as codex/bun: %APPDATA%\npm wins over fnm multishell shims.
+Add-AgentPath -Path "$env:APPDATA\npm" -Prepend
+Add-AgentPath -Path "$env:LOCALAPPDATA\OpenAI\Codex\bin"
 Add-AgentPath -Path "$env:USERPROFILE\.local\bin" -Prepend
 Add-AgentPath -Path "$env:LOCALAPPDATA\pnpm" -Prepend
 Add-AgentPath -Path "$env:APPDATA\Python\Python313\Scripts" -Prepend
@@ -84,10 +87,38 @@ if (Test-Path -LiteralPath $privateOverlay) {
     . $privateOverlay
 }
 
+# Final authority: persistent npm global CLIs (codex, bun) must stay ahead of
+# fnm multishell paths that can appear later via profile re-entry.
+$npmGlobalPath = Join-Path $env:APPDATA 'npm'
+if (Test-Path -LiteralPath $npmGlobalPath) {
+    $env:PATH = (($env:PATH -split ';' | Where-Object {
+        $_ -and -not [string]::Equals($_.TrimEnd('\'), $npmGlobalPath.TrimEnd('\'), [StringComparison]::OrdinalIgnoreCase)
+    }) -join ';')
+    $env:PATH = "$npmGlobalPath;$env:PATH"
+}
+
 $env:PATH = (($env:PATH -split ';' | Where-Object { $_ } | Select-Object -Unique) -join ';')
 
+function Update-BunCli {
+    param(
+        [string]$Version = 'latest'
+    )
+    $prefix = Join-Path $env:APPDATA 'npm'
+    Write-Host "Installing bun@$Version into $prefix"
+    npm install -g "bun@$Version" --prefix $prefix
+    if (Get-Command fnm -ErrorAction SilentlyContinue) {
+        Write-Host 'Also installing into current fnm node prefix for consistency'
+        npm install -g "bun@$Version"
+    }
+    $cmd = Get-Command bun -ErrorAction SilentlyContinue
+    if ($cmd) {
+        Write-Host "Resolved: $($cmd.Source)"
+        & bun --version
+    }
+}
+
 function agent-path-doctor {
-    $interesting = @('codex','rg','fd','fzf','jq','yq','7z','go','gofmt','gopls','dlv','golangci-lint','air','cmake','ninja','msbuild','nuget','rsync','zip','winget','scoop','choco')
+    $interesting = @('codex','bun','node','npm','fnm','rg','fd','fzf','jq','yq','7z','go','gofmt','gopls','dlv','golangci-lint','air','cmake','ninja','msbuild','nuget','rsync','zip','winget','scoop','choco')
     foreach ($command in $interesting) {
         $resolved = Get-Command $command -ErrorAction SilentlyContinue
         [pscustomobject]@{
@@ -99,18 +130,40 @@ function agent-path-doctor {
     }
 }
 
+function Get-RedactedProxyHint {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) { return $null }
+    try {
+        $uri = [Uri]$Value
+        if ($uri.IsAbsoluteUri) {
+            return '{0}://{1}:{2}' -f $uri.Scheme, $uri.Host, $uri.Port
+        }
+    } catch {
+        # Fall through to generic redaction.
+    }
+    $redacted = $Value -replace '://[^@/]+@', '://***@'
+    $redacted = $redacted -replace '([?&](token|key|password|secret)=)[^&]+', '$1***'
+    if ($redacted.Length -gt 80) { $redacted = $redacted.Substring(0, 80) + '...' }
+    return $redacted
+}
+
 function agent-env-doctor {
     [pscustomobject]@{
         PSVersion = $PSVersionTable.PSVersion.ToString()
+        OverlayVersion = $script:PwshAiAgentOverlayVersion
         OutputRendering = if ($PSStyle) { $PSStyle.OutputRendering } else { 'n/a' }
         OutputEncoding = [Console]::OutputEncoding.WebName
         InputEncoding = [Console]::InputEncoding.WebName
-        HTTP_PROXY = $env:HTTP_PROXY
-        HTTPS_PROXY = $env:HTTPS_PROXY
-        ALL_PROXY = $env:ALL_PROXY
+        HTTP_PROXY = Get-RedactedProxyHint -Value $env:HTTP_PROXY
+        HTTPS_PROXY = Get-RedactedProxyHint -Value $env:HTTPS_PROXY
+        ALL_PROXY = Get-RedactedProxyHint -Value $env:ALL_PROXY
         NO_PROXY = $env:NO_PROXY
         GOPATH = $env:GOPATH
         GOPROXY = $env:GOPROXY
         GOSUMDB = $env:GOSUMDB
+        BunResolved = (Get-Command bun -ErrorAction SilentlyContinue).Source
+        CodexResolved = (Get-Command codex -ErrorAction SilentlyContinue).Source
+        GstackRepo = if (Test-Path -LiteralPath (Join-Path $env:USERPROFILE 'gstack')) { '%USERPROFILE%\gstack' } else { '' }
+        GstackCodexSkill = if (Test-Path -LiteralPath (Join-Path $env:USERPROFILE '.codex\skills\gstack\SKILL.md')) { 'present' } else { 'missing' }
     } | Format-List
 }

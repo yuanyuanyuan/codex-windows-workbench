@@ -68,6 +68,23 @@ $commands = @()
 $commands += foreach ($name in $required) { Get-CommandRow -Name $name -Tier 'required' }
 $commands += foreach ($name in $recommended) { Get-CommandRow -Name $name -Tier 'recommended' }
 
+function Get-RedactedProxyHint {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) { return $null }
+    try {
+        $uri = [Uri]$Value
+        if ($uri.IsAbsoluteUri) {
+            return '{0}://{1}:{2}' -f $uri.Scheme, $uri.Host, $uri.Port
+        }
+    } catch {
+        # Fall through to generic redaction.
+    }
+    $redacted = $Value -replace '://[^@/]+@', '://***@'
+    $redacted = $redacted -replace '([?&](token|key|password|secret)=)[^&]+', '$1***'
+    if ($redacted.Length -gt 80) { $redacted = $redacted.Substring(0, 80) + '...' }
+    return $redacted
+}
+
 $envChecks = [pscustomobject]@{
     PSVersion = $PSVersionTable.PSVersion.ToString()
     OutputRendering = if ($PSStyle) { $PSStyle.OutputRendering.ToString() } else { 'n/a' }
@@ -75,9 +92,9 @@ $envChecks = [pscustomobject]@{
     ConsoleInputEncoding = [Console]::InputEncoding.WebName
     PythonIOEncoding = $env:PYTHONIOENCODING
     PythonUTF8 = $env:PYTHONUTF8
-    HTTP_PROXY = $env:HTTP_PROXY
-    HTTPS_PROXY = $env:HTTPS_PROXY
-    ALL_PROXY = $env:ALL_PROXY
+    HTTP_PROXY = Get-RedactedProxyHint -Value $env:HTTP_PROXY
+    HTTPS_PROXY = Get-RedactedProxyHint -Value $env:HTTPS_PROXY
+    ALL_PROXY = Get-RedactedProxyHint -Value $env:ALL_PROXY
     NO_PROXY = $env:NO_PROXY
     GOPATH = $env:GOPATH
     GOPROXY = $env:GOPROXY
