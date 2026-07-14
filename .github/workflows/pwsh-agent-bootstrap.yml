@@ -61,9 +61,12 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $entry = Join-Path $env:SKILL_SCRIPTS 'Initialize-PwshAgentWindows.ps1'
-          foreach ($args in @(@('-WhatIf','-Json'), @('-Full','-WhatIf','-Json'))) {
-            $json = & pwsh -NoLogo -NoProfile -File $entry @args
-            $report = $json | ConvertFrom-Json
+          foreach ($argSet in @(@('-WhatIf','-Json'), @('-Full','-WhatIf','-Json'))) {
+            $raw = & pwsh -NoLogo -NoProfile -File $entry @argSet 2>&1 | Out-String
+            $start = $raw.LastIndexOf('{')
+            $end = $raw.LastIndexOf('}')
+            if ($start -lt 0 -or $end -le $start) { throw "WhatIf JSON object not found. Output=$raw" }
+            $report = $raw.Substring($start, $end - $start + 1) | ConvertFrom-Json
             if ($report.Changed) { throw 'WhatIf reported Changed=true' }
             $bad = @($report.Actions | Where-Object { $_.Action -match 'WSL|bash|Linux|apt|brew' -or $_.Target -match 'WSL|bash|Linux|apt|brew' })
             if ($bad.Count -gt 0) { throw "WSL-like action planned: $($bad | ConvertTo-Json -Compress)" }

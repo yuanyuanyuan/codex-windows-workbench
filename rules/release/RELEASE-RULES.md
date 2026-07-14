@@ -45,11 +45,15 @@ The evidence must name the OS version, PowerShell version, test date, tested sou
 
 ## Release Procedure
 
-1. Implement and review the release changes, then update the version and changelog.
+1. Implement the release changes, then update the version and changelog.
 2. Run Tier A locally. Run Tier B locally after packaging or installation changes.
 3. Run the required current-host and upgrade UATs, then commit the sanitized versioned evidence. Record any untested fresh-machine coverage as a limitation.
-4. Dispatch `Release` from `master` with the numeric version. The workflow validates all gates, creates `vX.Y.Z`, and creates the GitHub Release from that tag.
-5. Verify the published release links only to immutable sources and contains supported channels, consent boundaries, rollback limitation, privacy boundary, and security-reporting link.
+4. One-click publish (preferred):
+   `pwsh -NoLogo -NoProfile -File .\tests\release\Publish-Release.ps1`
+   This merges the release branch if needed, dispatches the Release workflow, and waits for the tag/GitHub Release.
+5. Alternative: merge to `master` with the versioned evidence. The Release workflow also auto-runs on `master` pushes that change release-relevant files and will publish when the tag does not already exist.
+6. Manual fallback: dispatch `Release` from `master` with the numeric version.
+7. Verify the published release links only to immutable sources and contains supported channels, consent boundaries, rollback limitation, privacy boundary, and security-reporting link.
 
 ## Stop Conditions
 
